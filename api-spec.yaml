@@ -1,0 +1,84 @@
+swagger: '2.0'
+info:
+  title: Carleton Sesquicentennial API
+  description: Content Delivery for the Carleton Sesquicentennial Mobile Apps
+  version: 0.0.1
+host: api.carleton.edu
+schemes:
+  - https
+basePath: /
+produces:
+  - application/json
+paths:
+  /landmarks:
+    get:
+      summary: Landmarks close to your location
+      description: |
+        The Landmarks endpoint delivers Landmark objects representing points of interest that are close by, and their relative location
+      parameters:
+        - name: latitude
+          in: query
+          description: Latitude component of location.
+          required: true
+          type: number
+          format: double
+        - name: longitude
+          in: query
+          description: Longitude component of location.
+          required: true
+          type: number
+          format: double
+      tags:
+        - Landmarks
+      responses:
+        '200':
+          description: An array of landmarks
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Landmark'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Location:
+    type: object
+    properties:
+      latitude:
+        type: number
+        format: double
+        description: Latitude component of location.
+      longitude: 
+        type: number
+        format: double
+        description: Longitude component of location.
+  Landmark:
+    type: object
+    properties:
+      description:
+        type: string
+        description: Description of the history of a landmark.
+      geofence: 
+        type: array
+        description: 'An array of four location objects that encompass a geofence around the landmark.' 
+        items: 
+          $ref: '#/definitions/Location'
+      date:
+        type: string
+        description: Date constructed.
+      images:
+        type: array
+        description: 'An array of image URLs associated with the landmark'
+        items:
+          type: string
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string

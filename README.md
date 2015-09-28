@@ -1,2 +1,2 @@
 # Server
-Server-side application and API for Sesquicentennial mobile apps
+Server-side application and API for Sesquicentennial mobile apps.
