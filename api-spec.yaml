@@ -6,11 +6,11 @@ info:
 host: api.carleton.edu
 schemes:
   - https
-basePath: /
+basePath: /1.0
 produces:
   - application/json
 paths:
-  /landmarks:
+  /freeRoam/landmarks:
     get:
       summary: Landmarks close to your location
       description: |
@@ -28,6 +28,11 @@ paths:
           required: true
           type: number
           format: double
+        - name: userId
+          in: query
+          description: Unique string for the users name
+          required: true
+          type: string
       tags:
         - Landmarks
       responses:
@@ -41,7 +46,90 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /events/upcoming:
+    get:
+      summary: Returns a list of upcoming event objects
+      description: |
+        The upcoming endpoint delivers event objects representing upcoming events based on a timestamp.
+      parameters:
+        - name: timestamp
+          type: string
+          in: query
+          description: time to start looking for events
+          required: true
+          type: date
+        - name: userId
+          in: query
+          description: Unique string for the users name
+          required: true
+          type: string
+        - name: numToReturn
+          in: query
+          description: Number of event objects to return
+          required: false
+          type: number
+          format: integer
+      tags:
+        - Events
+      responses:
+        '200':
+          description: An array of events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Event'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'  
+  /events/add:
+    post:
+      summary: Users can add an event
+      description: |
+        The add endpoint allows users to post events
+      parameters:
+        - name: timestamp
+          type: string
+          in: query
+          description: time of the event
+          required: true
+          type: date
+        - name: venue
+          in: query
+          description: The venue of the event
+          required: true
+          type: string
+        - name: userId
+          in: query
+          description: Unique string for the users name
+          required: true
+          type: string
+      tags:
+        - Events
+      responses:
+        '200':
+          description: An array of events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Event'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'  
 definitions:
+  Event:
+    type: object
+    properties:
+      time:
+        type: string
+        description: time of event
+      venue:
+        type: string
+        description: human readable location of event
+      location:
+        $ref: '#/definitions/Location'
+        description: coordinates for venue
   Location:
     type: object
     properties:
