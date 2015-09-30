@@ -178,13 +178,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'    
-  /social/imageFeed:
-    get:
-      summary: Get the recent images from the image feed
-      description: 
-      responses:
-        200:
-          description: OK
     
 definitions:
   Goal:
