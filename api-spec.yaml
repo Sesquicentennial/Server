@@ -57,7 +57,6 @@ paths:
           in: query
           description: time to start looking for events
           required: true
-          type: date
         - name: userId
           in: query
           description: Unique string for the users name
@@ -81,6 +80,39 @@ paths:
         default:
           description: Unexpected error
           schema:
+            $ref: '#/definitions/Error'
+  /games/goal:
+    get:
+      summary: Returns a goal object for the game based on the level and user
+      description: |
+        The goal endpoint delivers a goal object containing an image, a goal name, a clue and a location.
+      parameters:
+        - name: gameName
+          type: string
+          in: query
+          description: name of the game being played
+          required: true
+        - name: levelNumber
+          type: number
+          in: query
+          format: integer
+          description: current level of the user in the game
+        - name: userId
+          in: query
+          description: Unique string for the users name
+          required: true
+          type: string
+      tags:
+        - Game
+      responses:
+        '200':
+          description: A goal object
+          schema:
+            $ref: '#/definitions/Goal'
+            
+        default:
+          description: Unexpected error
+          schema:
             $ref: '#/definitions/Error'  
   /events/add:
     post:
@@ -93,7 +125,6 @@ paths:
           in: query
           description: time of the event
           required: true
-          type: date
         - name: venue
           in: query
           description: The venue of the event
@@ -117,7 +148,70 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'  
+  /social/addImage:
+    post:
+      summary: Users can add an image to our feed
+      description: |
+        The addImage endpoint allows the user to post images to the app's social feed. The data is stored in a database.
+      parameters:
+        - name: image 
+          type: file
+          in: formData
+          description: image that will be posted
+          required: true
+        - name: caption
+          type: string
+          in: query
+          description: catchy but quirky caption (barf)
+        - name: timestamp
+          type: string
+          in: query
+          description: time the image was taken
+      tags:
+        - Social
+      responses:
+        '200':
+          description: State of request (success or failure)
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'    
+  /social/imageFeed:
+    get:
+      summary: Get the recent images from the image feed
+      description: 
+      responses:
+        200:
+          description: OK
+    
 definitions:
+  Goal:
+    type: object
+    properties:
+      clue:
+        type: string
+        description: clue on how to get to the next level
+      image:
+        $ref: '#/definitions/Image'
+        description: a helpful image
+      location:
+        $ref: '#/definitions/Location'
+        description: coordinates for venue
+  Image:
+    type: object
+    properties:
+      pixels:
+        type: array
+        items:
+          $ref: '#/definitions/Pixel'
+        description: array of pixels
+  Pixel:
+    type: array
+    items:
+      type: number
+    description: useful representation of a pixel
   Event:
     type: object
     properties:
