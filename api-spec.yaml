@@ -29,328 +29,6 @@ paths:
           required: true
           type: number
           format: double
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: false
-          type: string
-        - name: offCampus
-          in: query
-          description: boolean for whether to return all landmarks so people
-                       off campus can still explore the campus history
-          required: false
-          type: boolean
-      tags:
-        - Landmarks
-      responses:
-        '200':
-          description: An array of landmarks
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Landmark'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /events/upcoming:
-    get:
-      summary: Returns a list of upcoming event objects
-      description: >
-        The upcoming endpoint delivers event objects representing upcoming events
-        based on a timestamp.
-      parameters:
-        - name: timestamp
-          type: string
-          in: query
-          description: latest event to return
-          required: true
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: true
-          type: string
-        - name: numToReturn
-          in: query
-          description: Number of event objects to return
-          required: false
-          type: number
-          format: integer
-      tags:
-        - Events
-      responses:
-        '200':
-          description: An array of events
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Event'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /events/past:
-    get:
-      summary: Returns a list of past event objects
-      description: >
-        The upcoming endpoint delivers event objects representing past events
-        based on a timestamp.
-      parameters:
-        - name: timestamp
-          type: string
-          in: query
-          description: latest event to return 
-          required: true
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: true
-          type: string
-        - name: numToReturn
-          in: query
-          description: Number of event objects to return
-          required: false
-          type: number
-          format: integer
-      tags:
-        - Events
-      responses:
-        '200':
-          description: An array of events
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Event'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /social/images:
-    get:
-      summary: Recent tagged images in the Sesquicentennial social feed
-      description: >
-        The images endpoint allows users to get images from the Sesquicentennial social feed from the app. 
-      parameters:
-        - name: numToReturn
-          type: number
-          format: integer
-          in: query
-          description: Limit on the number of images to return, again with the most recent first. 
-          required: true
-        - name: timestamp
-          type: string
-          in: query
-          description: Latest date to return images from, most recent first.
-          required: false
-      tags:
-        - Social
-      responses:
-        '200':
-          description: An array of image URLs associated with the time period specified.
-          schema:
-            type: array
-            items: 
-              type: string
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-
-  /games/goal:
-    get:
-      summary: Returns a goal object for the game based on the level and user
-      description: >
-        The goal endpoint delivers a goal object containing an image, a goal
-        name, a clue and a location.
-      parameters:
-        - name: gameName
-          type: string
-          in: query
-          description: name of the game being played
-          required: true
-        - name: levelNumber
-          type: number
-          in: query
-          format: integer
-          description: current level of the user in the game
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: true
-          type: string
-      tags:
-        - Game
-      responses:
-        '200':
-          description: A goal object
-          schema:
-            $ref: '#/definitions/Goal'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /events/add:
-    post:
-      summary: Users can add an event
-      description: |
-        The add endpoint allows users to post events
-      parameters:
-        - name: timestamp
-          type: string
-          in: query
-          description: time of the event
-          required: true
-        - name: venue
-          in: query
-          description: The venue of the event
-          required: true
-          type: string
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: true
-          type: string
-      tags:
-        - Events
-      responses:
-        '200':
-          description: An array of events
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Event'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /social/addImage:
-    post:
-      summary: Users can add an image to our feed
-      description: >
-        The addImage endpoint allows the user to post images to the app's social
-        feed. The data is stored in a database.
-      parameters:
-        - name: image
-          type: file
-          in: formData
-          description: image that will be posted
-          required: true
-        - name: caption
-          type: string
-          in: query
-          description: catchy but quirky caption (barf)
-        - name: timestamp
-          type: string
-          in: query
-          description: time the image was taken
-      tags:
-        - Social
-      responses:
-        '200':
-          description: State of request (success or failure)
-          schema:
-            type: string
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-            
-definitions:
-  Goal:
-    type: object
-    properties:
-      clue:
-        type: string
-        description: clue on how to get to the next level
-      image:
-        type: string
-        description: a helpful image
-      location:
-        $ref: '#/definitions/Location'
-        description: coordinates for venue
-  Event:
-    type: object
-    properties:
-      time:
-        type: string
-        description: time of event
-      venue:
-        type: string
-        description: human readable location of event
-      location:
-        $ref: '#/definitions/Location'
-        description: coordinates for venue
-  Location:
-    type: object
-    properties:
-      latitude:
-        type: number
-        format: double
-        description: Latitude component of location.
-      longitude:
-        type: number
-        format: double
-        description: Longitude component of location.
-  Landmark:
-    type: object
-    properties:
-      description:
-        type: string
-        description: Description of the history of a landmark.
-      geofence:
-        type: array
-        description: An array of four location objects that encompass a geofence around the landmark.
-        items:
-          $ref: '#/definitions/Location'
-      date:
-        type: string
-        description: Date associated with the content for this landmark.
-      content:
-        type: array
-        description: An array of content URLs associated with the landmark
-        items:
-          type: string
-  Error:
-    type: object
-    properties:
-      code:
-        type: integer
-        format: int32
-      message:
-        type: string
-      fields:
-        type: string
-swagger: '2.0'
-info:
-  title: Carleton Sesquicentennial API
-  description: Content Delivery for the Carleton Sesquicentennial Mobile Apps
-  version: 0.0.1
-host: api.carleton.edu
-schemes:
-  - https
-basePath: /1.0
-produces:
-  - application/json
-paths:
-  /landmarks:
-    get:
-      summary: Landmarks close to your location
-      description: >
-        The Landmarks endpoint delivers Landmark objects representing points of
-        interest that are close by, and their relative location
-      parameters:
-        - name: latitude
-          in: query
-          description: Latitude component of location.
-          required: true
-          type: number
-          format: double
-        - name: longitude
-          in: query
-          description: Longitude component of location.
-          required: true
-          type: number
-          format: double
         - name: year
           in: query
           description: Year from which to collect historical information associated with the landmark (note that it will return closest year to the one given that is more recent than the year given)
@@ -364,8 +42,7 @@ paths:
           type: string
         - name: offCampus
           in: query
-          description: boolean for whether to return all landmarks so people
-                       off campus can still explore the campus history
+          description: boolean for whether to return all landmarks so people off campus can still explore the campus history
           required: false
           type: boolean
       tags:
@@ -389,8 +66,9 @@ paths:
         based on a timestamp.
       parameters:
         - name: timestamp
-          type: string
-          in: query
+          in: body
+          schema: 
+            $ref: '#/definitions/Timespan'
           description: latest event to return
           required: true
         - name: userId
@@ -398,7 +76,7 @@ paths:
           description: Unique string for the users name
           required: true
           type: string
-        - name: numToReturn
+        - name: limit
           in: query
           description: Number of event objects to return
           required: false
@@ -427,14 +105,14 @@ paths:
         - name: timestamp
           type: string
           in: query
-          description: latest event to return 
+          description: latest event to return
           required: true
         - name: userId
           in: query
           description: Unique string for the users name
           required: true
           type: string
-        - name: numToReturn
+        - name: limit
           in: query
           description: Number of event objects to return
           required: false
@@ -490,19 +168,18 @@ paths:
   /social/images:
     get:
       summary: Recent tagged images in the Sesquicentennial social feed
-      description: >
-        The images endpoint allows users to get images from the Sesquicentennial social feed from the app. 
+      description: "The images endpoint allows users to get images from the Sesquicentennial social feed from the app. \n"
       parameters:
-        - name: numToReturn
+        - name: limit
           type: number
           format: integer
           in: query
-          description: Limit on the number of images to return, again with the most recent first. 
+          description: 'Limit on the number of images to return, again with the most recent first.'
           required: true
         - name: timestamp
           type: string
           in: query
-          description: Latest date to return images from, most recent first.
+          description: 'Latest date to return images from, most recent first.'
           required: false
       tags:
         - Social
@@ -511,7 +188,7 @@ paths:
           description: An array of image URLs associated with the time period specified.
           schema:
             type: array
-            items: 
+            items:
               type: string
         default:
           description: Unexpected error
@@ -532,7 +209,7 @@ paths:
         - name: caption
           type: string
           in: query
-          description: catchy but quirky caption (barf)
+          description: catchy but quirky caption
         - name: timestamp
           type: string
           in: query
@@ -581,7 +258,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
 definitions:
   Goal:
     type: object
@@ -592,8 +268,8 @@ definitions:
       image:
         type: string
         description: a helpful image
-      location:
-        $ref: '#/definitions/Location'
+      geofence:
+        $ref: '#/definitions/Geofence'
         description: coordinates for venue
   Event:
     type: object
@@ -604,8 +280,8 @@ definitions:
       venue:
         type: string
         description: human readable location of event
-      location:
-        $ref: '#/definitions/Location'
+      geofence:
+        $ref: '#/definitions/Geofence'
         description: coordinates for venue
   Location:
     type: object
@@ -618,6 +294,27 @@ definitions:
         type: number
         format: double
         description: Longitude component of location.
+  Geofence:
+    type: object
+    properties:
+      location:
+        $ref: '#/definitions/Location'
+        description: location of the center of the geofence
+      radius:
+        type: number
+        format: double
+        description: radius in meters of the geofence.
+  Timespan:
+    type: object
+    properties:
+      startTime:
+        type: string
+        format: date
+        description: start of time range
+      endTime:
+        type: string
+        format: date
+        description: end of time range
   Landmark:
     type: object
     properties:
@@ -625,7 +322,7 @@ definitions:
         type: string
         description: Description of the history of a landmark.
       geofence:
-        type: array
+        $ref: '#/definitions/Geofence'
         description: An array of four location objects that encompass a geofence around the landmark.
         items:
           $ref: '#/definitions/Location'
