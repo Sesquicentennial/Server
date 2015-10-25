@@ -37,7 +37,7 @@ paths:
           format: integer
         - name: userId
           in: query
-          description: Unique string for the users name
+          description: Unique string for the user's name
           required: false
           type: string
         - name: offCampus
@@ -78,7 +78,7 @@ paths:
           required: true
         - name: userId
           in: query
-          description: Unique string for the users name
+          description: Unique string for the user's name
           required: true
           type: string
         - name: limit
@@ -114,7 +114,7 @@ paths:
           required: true
         - name: userId
           in: query
-          description: Unique string for the users name
+          description: Unique string for the user's name
           required: true
           type: string
         - name: limit
@@ -154,7 +154,7 @@ paths:
           type: string
         - name: userId
           in: query
-          description: Unique string for the users name
+          description: Unique string for the user's name
           required: true
           type: string
       tags:
@@ -171,21 +171,29 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /social/images:
-    get:
+    post:
       summary: Recent tagged images in the Sesquicentennial social feed
       description: "The images endpoint allows users to get images from the Sesquicentennial social feed from the app. \n"
       parameters:
-        - name: limit
-          type: number
-          format: integer
-          in: query
-          description: 'Limit on the number of images to return, again with the most recent first.'
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              limit:
+                type: number
+                format: integer
+                description: 'Limit on the number of images to return, again with the most recent first.'
+              timestamp:
+                type: string
+                description: 'Latest date to return images from, most recent first.'
+          description: object query for getting images from the feed
           required: true
-        - name: timestamp
+        - name: userId
           type: string
           in: query
           description: 'Latest date to return images from, most recent first.'
-          required: false
+          required: true
       tags:
         - Social
       responses:
@@ -206,19 +214,27 @@ paths:
         The addImage endpoint allows the user to post images to the app's social
         feed. The data is stored in a database.
       parameters:
-        - name: image
-          type: file
-          in: formData
-          description: image that will be posted
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              image:
+                type: file
+                description: image that will be posted
+              caption:
+                type: string
+                description: catchy but quirky caption
+              timestamp:
+                type: string
+                description: time the image was taken
+          description: object query for sending images
           required: true
-        - name: caption
-          type: string
+        - name: userId
           in: query
-          description: catchy but quirky caption
-        - name: timestamp
+          description: Unique string for the user's name
+          required: true
           type: string
-          in: query
-          description: time the image was taken
       tags:
         - Social
       responses:
@@ -231,26 +247,32 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /games/goal:
-    get:
+    post:
       summary: Returns a goal object for the game based on the level and user
       description: >
         The goal endpoint delivers a goal object containing an image, a goal
         name, a clue and a location.
       parameters:
-        - name: gameName
-          type: string
-          in: query
-          description: name of the game being played
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              gameName:
+                type: string
+                description: name of the game being played
+              levelNumber:
+                type: number
+                format: integer
+                description: current level of the user in the game
+              timespan:
+                $ref: '#/definitions/Timespan'
+          description: object query for goal objects
           required: true
-        - name: levelNumber
-          type: number
-          in: query
-          format: integer
-          description: current level of the user in the game
         - name: userId
           in: query
-          description: Unique string for the users name
-          required: true
+          description: Unique string for the user's name
+          required: false
           type: string
       tags:
         - Game
