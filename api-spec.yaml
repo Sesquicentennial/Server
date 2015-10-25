@@ -11,40 +11,29 @@ produces:
   - application/json
 paths:
   /landmarks:
-    get:
+    post:
       summary: Landmarks close to your location
       description: >
         The Landmarks endpoint delivers Landmark objects representing points of
         interest that are close by, and their relative location
       parameters:
-        - name: latitude
-          in: query
-          description: Latitude component of location.
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              geofence:
+                $ref: '#/definitions/Geofence'
+              timespan:
+                $ref: '#/definitions/Timespan'
+                description: Year from which to collect historical information associated with the landmark (note that it will return closest year to the one given that is more recent than the year given)
+          description: latest event to return
           required: true
-          type: number
-          format: double
-        - name: longitude
-          in: query
-          description: Longitude component of location.
-          required: true
-          type: number
-          format: double
-        - name: year
-          in: query
-          description: Year from which to collect historical information associated with the landmark (note that it will return closest year to the one given that is more recent than the year given)
-          required: true
-          type: number
-          format: integer
         - name: userId
           in: query
           description: Unique string for the user's name
           required: false
           type: string
-        - name: offCampus
-          in: query
-          description: boolean for whether to return all landmarks so people off campus can still explore the campus history
-          required: false
-          type: boolean
       tags:
         - Landmarks
       responses:
@@ -59,34 +48,29 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /events/upcoming:
-    get:
+    post:
       summary: Returns a list of upcoming event objects
       description: >
-        The upcoming endpoint delivers event objects representing upcoming events
-        based on a timestamp.
+        The upcoming endpoint delivers event objects representing upcoming events based on a timestamp.
       parameters:
-        - name: timestamp
+        - name: request
           in: body
           schema:
             type: object
             properties:
-              description:
-                type: string
               timespan:
                 $ref: '#/definitions/Timespan'
+              limit:
+                type: number
+                format: integer
+                description: Number of objects to return
           description: latest event to return
           required: true
         - name: userId
           in: query
-          description: Unique string for the user's name
-          required: true
-          type: string
-        - name: limit
-          in: query
-          description: Number of event objects to return
+          description: Unique string for the users name
           required: false
-          type: number
-          format: integer
+          type: string
       tags:
         - Events
       responses:
@@ -101,28 +85,29 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /events/past:
-    get:
+    post:
       summary: Returns a list of past event objects
       description: >
-        The upcoming endpoint delivers event objects representing past events
-        based on a timestamp.
+        The upcoming endpoint delivers event objects representing past events based on a timestamp.
       parameters:
-        - name: timestamp
-          type: string
-          in: query
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              timespan:
+                $ref: '#/definitions/Timespan'
+              limit:
+                type: number
+                format: integer
+                description: Number of objects to return
           description: latest event to return
           required: true
         - name: userId
           in: query
-          description: Unique string for the user's name
-          required: true
-          type: string
-        - name: limit
-          in: query
-          description: Number of event objects to return
+          description: Unique string for the users name
           required: false
-          type: number
-          format: integer
+          type: string
       tags:
         - Events
       responses:
@@ -138,20 +123,22 @@ paths:
             $ref: '#/definitions/Error'
   /events/add:
     post:
-      summary: Users can add an event
-      description: |
+      summary: Returns a list of upcoming event objects
+      description: >
         The add endpoint allows users to post events
       parameters:
-        - name: timestamp
-          type: string
-          in: query
-          description: time of the event
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              timespan:
+                $ref: '#/definitions/Timespan'
+              venue:
+                type: string
+                description: The venue of the event
+          description: latest event to return
           required: true
-        - name: venue
-          in: query
-          description: The venue of the event
-          required: true
-          type: string
         - name: userId
           in: query
           description: Unique string for the user's name
