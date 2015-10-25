@@ -67,8 +67,13 @@ paths:
       parameters:
         - name: timestamp
           in: body
-          schema: 
-            $ref: '#/definitions/Timespan'
+          schema:
+            type: object
+            properties:
+              description:
+                type: string
+              timespan:
+                $ref: '#/definitions/Timespan'
           description: latest event to return
           required: true
         - name: userId
