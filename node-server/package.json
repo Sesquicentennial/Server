@@ -8,6 +8,7 @@
     "fs": "*"
   },
   "devDependencies": {
+    "expect.js": "^0.3.1",
     "mocha": "^2.3.3"
   }
 }
