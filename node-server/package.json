@@ -1,10 +1,13 @@
 {
-    "name":"Carleton-Sesquincentenial-App",
-    "version": "0.0.1",
-    "dependencies": {
-        "restify":"*",
-        "mongoose": "*",
-        "mongodb": "*",
-        "fs": "*"
-    }
+  "name": "Carleton-Sesquincentenial-App",
+  "version": "0.0.1",
+  "dependencies": {
+    "restify": "*",
+    "mongoose": "*",
+    "mongodb": "*",
+    "fs": "*"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.3"
+  }
 }
