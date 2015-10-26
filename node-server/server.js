@@ -1,24 +1,41 @@
-var restify = require('restify')
-
+var restify = require('restify');
+var mongojs = require('mongojs');
+var utils = require('./app/services/utils');
 var server = restify.createServer();
-    landmark = require('./app/controllers/landmarks.js')
-server
-    .use(restify.fullResponse())
-    .use(restify.bodyParser())
 
-// Endpoints for Landmarks 
-// server.get("/landmarks/:location", landmark.getLandmark);
-// server.post("landmarks/add", landmark.addLandmark);
-// server.get({path: "/landmarks/:location", version: "1.0.0"}, controllers.landmarks.getLandmark)
- 
-// Endpoints for Events 
-// server.get("/events", controllers.events.getAllEvents)
-// server.get("/events/:time", controllers.events.getEventByTime)
- 
-var port = process.env.PORT || 3000;
-server.listen(port, function (err) {
-    if (err)
-        console.error(err)
-    else
-        console.log('Sesq App Listening at: ' + port)
+var db = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carleton-sesq', ['content'], {authMechanism: 'ScramSHA1'});
+
+server.use(restify.acceptParser(server.acceptable));
+server.use(restify.queryParser());
+server.use(restify.bodyParser());
+
+// Endpoint for Landmarks
+server.post("/landmarks", function (req, res, next) {
+	// extract useful information from the request
+	var requestBody = req.body;
+	var radius = req.body.geofence.radius;
+	var center = req.body.geofence.location;
+    db.content.find(function (err, content) {
+    	var output = []
+    	if (content) {
+    		for (var i = 0; i < content.length; i++) {
+    			if (utils.distanceTo(radius,center,content[i].location)) {
+					output.push(content[i]);
+    			}
+    		}
+	        res.writeHead(200, {
+	            'Content-Type': 'application/json; charset=utf-8'
+	        });    		
+	        res.end(JSON.stringify({content: output}));
+    	} else {
+	        res.writeHead(404, {
+	        });    		
+	        res.end(JSON.stringify(err));
+    	}
+    });
+    return next();
+});
+
+server.listen(3000, function () {
+    console.log("Server started @ 3000");
 });
