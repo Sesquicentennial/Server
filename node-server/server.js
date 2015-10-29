@@ -36,6 +36,15 @@ server.post("/landmarks", function (req, res, next) {
     return next();
 });
 
+server.get("/landmarks", function(req,res,next){
+	res.writeHead(200,{
+	    'Content-Type': 'text; charset=utf-8'
+	});
+	res.end('MEOWMEOWMEOW')
+}); 
+
 server.listen(3000, function () {
     console.log("Server started @ 3000");
-});
+});	
+
+module.exports = server;
