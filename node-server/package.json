@@ -1,6 +1,9 @@
 {
   "name": "Carleton-Sesquincentenial-App",
   "version": "0.0.1",
+  "scripts": {
+    "test": "mocha test"
+  },
   "dependencies": {
     "restify": "*",
     "mongoose": "*",
@@ -8,7 +11,10 @@
     "fs": "*"
   },
   "devDependencies": {
+    "chai": "^3.4.0",
     "expect.js": "^0.3.1",
-    "mocha": "^2.3.3"
+    "mocha": "^2.3.3",
+    "mongojs": "^1.4.1",
+    "sinon": "^1.17.2"
   }
 }
