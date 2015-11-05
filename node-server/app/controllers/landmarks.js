@@ -1,10 +1,9 @@
 var mongoose = require('mongoose'),
     Landmark = require("../resources/landmarkModel"),
     ObjectId = mongoose.Types.ObjectId
- 
 
 exports.getLandmark = function(req, res, next) {
-    Landmark.findById(new ObjectId(req.params[0]), function(err,landmark) {
+    Landmark.findById(new ObjectId(req.params[0]), function(err, landmark) {
         if (err) {
             res.status(500);
             res.json({
@@ -12,7 +11,7 @@ exports.getLandmark = function(req, res, next) {
                 data: "Error occured: " + err
             });
         } else {
-            if (landmark) { 
+            if (landmark) {
                 res.json({
                     type: true,
                     data: landmark
@@ -25,4 +24,4 @@ exports.getLandmark = function(req, res, next) {
             }
         }
     })
-}
+};
