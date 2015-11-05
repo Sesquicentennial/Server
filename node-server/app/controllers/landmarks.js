@@ -2,7 +2,6 @@ var mongoose = require('mongoose'),
     Landmark = require("../resources/landmarkModel"),
     ObjectId = mongoose.Types.ObjectId
 
-
 exports.getLandmark = function(req, res, next) {
     Landmark.findById(new ObjectId(req.params[0]), function(err,landmark) {
         if (err) {

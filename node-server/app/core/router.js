@@ -1,7 +1,7 @@
 var restify = require('restify'),
     fs = require('fs'),
     database = require('./database'),
-    utils = require('../services/utils'),
+    utils = require('../services/utils');
 
 controllers = {};
 controllers_path = process.cwd() + '/app/controllers';
@@ -19,31 +19,7 @@ server.use(restify.bodyParser());
 
 // Endpoints
 server.post("/geofences", controllers.geofences.getNearbyGeofences);
-
-server.post("/landmarks", function (req, res, next) {
-	var requestBody = req.body;
-	var radius = req.body.geofence.radius;
-	var center = req.body.geofence.location;
-    database.db.content.find(function (err, content) {
-    	var output = [];
-    	if (content) {
-    		for (var i = 0; i < content.length; i++) {
-    			if (utils.distanceTo(radius,center,content[i].location)) {
-					output.push(content[i]);
-    			}
-    		}
-	        res.writeHead(200, {
-	            'Content-Type': 'application/json; charset=utf-8'
-	        });
-	        res.end(JSON.stringify({content: output}));
-    	} else {
-	        res.writeHead(404, {
-	        });
-	        res.end(JSON.stringify(err));
-    	}
-    });
-    return next();
-});
+server.post("/info", controllers.info.getInfo);
 
 server.get("/landmarks", function(req,res,next){
 	res.writeHead(200,{
