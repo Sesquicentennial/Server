@@ -1,4 +1,3 @@
-
 // a convenience function to determine the distance betweeen two points
 // in the geographic coordinate system
 var distanceTo = function(radius, center, point) {

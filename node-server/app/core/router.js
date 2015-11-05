@@ -6,7 +6,7 @@ var restify = require('restify'),
 controllers = {};
 controllers_path = process.cwd() + '/app/controllers';
 
-fs.readdirSync(controllers_path).forEach(function (file) {
+fs.readdirSync(controllers_path).forEach(function(file) {
     if (file.indexOf('.js') != -1) {
         controllers[file.split('.')[0]] = require(controllers_path + '/' + file)
     }
@@ -21,13 +21,13 @@ server.use(restify.bodyParser());
 server.post("/geofences", controllers.geofences.getNearbyGeofences);
 server.post("/info", controllers.info.getInfo);
 
-server.get("/landmarks", function(req,res,next){
-	res.writeHead(200,{
-	    'Content-Type': 'text; charset=utf-8'
-	});
-	res.end('MEOWMEOWMEOW')
+server.get("/landmarks", function(req, res, next) {
+    res.writeHead(200, {
+        'Content-Type': 'text; charset=utf-8'
+    });
+    res.end('MEOWMEOWMEOW')
 });
 
-server.listen(3000, function () {
+server.listen(3000, function() {
     console.log("Server started @ 3000");
 });
