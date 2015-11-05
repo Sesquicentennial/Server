@@ -3,7 +3,7 @@ var mongoose = require('mongoose'),
     ObjectId = mongoose.Types.ObjectId
 
 exports.getLandmark = function(req, res, next) {
-    Landmark.findById(new ObjectId(req.params[0]), function(err,landmark) {
+    Landmark.findById(new ObjectId(req.params[0]), function(err, landmark) {
         if (err) {
             res.status(500);
             res.json({
