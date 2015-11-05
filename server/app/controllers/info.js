@@ -3,27 +3,21 @@ var utils = require('../services/utils'),
 
 var getInfo = function(req, res, next) {
     var requestBody = req.body;
-    var radius = req.body.geofence.radius;
-    var center = req.body.geofence.location;
-    database.db.content.find(function(err, content) {
-        var output = [];
-        if (content) {
-            for (var i = 0; i < content.length; i++) {
-                if (utils.distanceTo(radius, center, content[i].location)) {
-                    output.push(content[i]);
+
+    database.infoDB.info.find( { geofences: { $in: req.body.geofences } },
+        function(error, info) {
+            output = [];
+            if (info) {
+                for (var i = 0; i < info.length; i++) {
+                    output.push(info[i]);
                 }
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ content: output }));   
+            } else if (error) {
+                res.writeHead(404, {});
+                res.end(JSON.stringify(error));
             }
-            res.writeHead(200, {
-                'Content-Type': 'application/json; charset=utf-8'
-            });
-            res.end(JSON.stringify({
-                content: output
-            }));
-        } else {
-            res.writeHead(404, {});
-            res.end(JSON.stringify(err));
-        }
-    });
+        });
     return next();
 };
 
