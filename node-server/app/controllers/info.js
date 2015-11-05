@@ -1,16 +1,16 @@
 var utils = require('../services/utils'),
     database = require('../core/database');
 
-var getNearbyGeofences = function (req, res, next) {
+var getInfo = function(req, res, next) {
 	var requestBody = req.body;
 	var radius = req.body.geofence.radius;
 	var center = req.body.geofence.location;
-    database.geoDB.geofences.find(function (err, geofences) {
+    database.db.content.find(function (err, content) {
     	var output = [];
-    	if (geofences) {
-    		for (var i = 0; i < geofences.length; i++) {
-    			if (utils.distanceTo(radius,center,geofences[i].geofence.location)) {
-					output.push(geofences[i]);
+    	if (content) {
+    		for (var i = 0; i < content.length; i++) {
+    			if (utils.distanceTo(radius,center,content[i].location)) {
+					output.push(content[i]);
     			}
     		}
 	        res.writeHead(200, {
@@ -27,5 +27,5 @@ var getNearbyGeofences = function (req, res, next) {
 };
 
 module.exports = {
-    getNearbyGeofences: getNearbyGeofences
+    getInfo: getInfo
 }
