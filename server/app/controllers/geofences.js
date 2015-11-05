@@ -13,12 +13,8 @@ var getNearbyGeofences = function(req, res, next) {
                     output.push(geofences[i]);
                 }
             }
-            res.writeHead(200, {
-                'Content-Type': 'application/json; charset=utf-8'
-            });
-            res.end(JSON.stringify({
-                content: output
-            }));
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ content: output }));
         } else {
             res.writeHead(404, {});
             res.end(JSON.stringify(err));

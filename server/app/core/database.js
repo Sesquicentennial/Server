@@ -2,7 +2,7 @@ var mongojs = require('mongojs'),
     fs = require('fs'),
     utils = require('../services/utils');
 
-var db = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carleton-sesq', ['content'], {
+var infoDB = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carleton-sesq', ['info'], {
     authMechanism: 'ScramSHA1'
 });
 
@@ -11,6 +11,6 @@ var geoDB = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carlet
 });
 
 module.exports = {
-    db: db,
+    infoDB: infoDB,
     geoDB: geoDB
 }
