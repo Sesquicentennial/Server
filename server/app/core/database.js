@@ -1,16 +1,10 @@
-var mongojs = require('mongojs'),
-    fs = require('fs'),
-    utils = require('../services/utils');
+var mysql = require('mysql'),
+    config = require('../../config');
 
-var infoDB = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carleton-sesq', ['info'], {
-    authMechanism: 'ScramSHA1'
-});
+var connection = mysql.createConnection(config);
 
-var geoDB = mongojs('mongodb://admin:admin123@ds045694.mongolab.com:45694/carleton-sesq', ['geofences'], {
-    authMechanism: 'ScramSHA1'
-});
+connection.connect();
 
 module.exports = {
-    infoDB: infoDB,
-    geoDB: geoDB
+	connection: connection
 }

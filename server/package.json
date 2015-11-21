@@ -5,11 +5,12 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "restify": "*",
-    "mongoose": "*",
-    "mongodb": "*",
     "fs": "*",
-    "mongojs": "*" 
+    "mongodb": "*",
+    "mongojs": "*",
+    "mongoose": "*",
+    "mysql": "^2.9.0",
+    "restify": "*"
   },
   "devDependencies": {
     "chai": "^3.4.0",
