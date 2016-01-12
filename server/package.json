@@ -5,6 +5,7 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "cron": "^1.1.0",
     "fs": "*",
     "mysql": "^2.9.0",
     "q": "^1.4.1",
