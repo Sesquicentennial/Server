@@ -20,13 +20,7 @@ server.use(restify.bodyParser());
 // Endpoints
 server.post("/geofences", controllers.geofences.getNearbyGeofences);
 server.post("/info", controllers.info.getInfo);
-
-server.get("/landmarks", function(req, res, next) {
-    res.writeHead(200, {
-        'Content-Type': 'text; charset=utf-8'
-    });
-    res.end('MEOWMEOWMEOW')
-});
+server.post("/events", controllers.events.getEvents);
 
 server.listen(3000, function() {
     console.log("Server started @ 3000");
