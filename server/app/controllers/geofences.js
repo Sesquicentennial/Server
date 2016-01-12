@@ -33,21 +33,6 @@ var getNearbyGeofences = function(req, res, next) {
             }
         }
     });
-    // database.geoDB.geofences.find(function(err, geofences) {
-    //     var output = [];
-    //     if (geofences) {
-    //         for (var i = 0; i < geofences.length; i++) {
-    //             if (utils.distanceTo(radius, center, geofences[i].geofence.location)) {
-    //                 output.push(geofences[i]);
-    //             }
-    //         }
-    //         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    //         res.end(JSON.stringify({ content: output }));
-    //     } else {
-    //         res.writeHead(404, {});
-    //         res.end(JSON.stringify(err));
-    //     }
-    // });
     return next();
 };
 
