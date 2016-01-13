@@ -12,17 +12,23 @@ fs.readdirSync(cron_path).forEach(function(file) {
     }
 });
 
-// Cron jobs to be run are below:
-var calendarUpdate = new CronJob({
-    // Note: triggers every hour.
-    cronTime: '0 * * * *',
-    onTick: function() {
-        cron_jobs.calendar.updateCalendar(
-            'http://apps.carleton.edu/calendar/?start_date=2016-01-12&format=ical'
-        );
-    },
-    start: false,
-    timeZone: timeZone
-});
+// Example cron job (will be used later to update the calendar from
+// the database if necessary).
 
-calendarUpdate.start();
+// var calendarUpdate = new CronJob({
+//     // Note: triggers every hour.
+//     cronTime: '0 * * * * *',
+//     onTick: function() {
+//         cron_jobs.calendar.updateCalendar(
+//             'http://apps.carleton.edu/calendar/?start_date=2016-01-12&format=ical'
+//         );
+//     },
+//     start: false,
+//     timeZone: timeZone
+// });
+//
+// calendarUpdate.start();
+
+// cron_jobs.calendar.updateCalendar(
+//     'http://apps.carleton.edu/calendar/?start_date=2016-01-12&format=ical'
+// );
