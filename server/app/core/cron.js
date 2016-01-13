@@ -14,7 +14,7 @@ fs.readdirSync(cron_path).forEach(function(file) {
 
 // Cron jobs to be run are below:
 var calendarUpdate = new CronJob({
-    // Note: triggers every hour currently. 
+    // Note: triggers every hour.
     cronTime: '0 * * * *',
     onTick: function() {
         cron_jobs.calendar.updateCalendar(
