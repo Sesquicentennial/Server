@@ -30,6 +30,17 @@ var getHaversineDistance = function(p1, p2) {
     return d;
 };
 
+// adapted from http://stackoverflow.com/questions/3066586/get-string-in-yyyymmdd-format-from-js-date-object
+// returns date in YYYY-MM-DD as a string
+var getCurrentDate = function() {
+    var date = new Date();
+    var yyyy = date.getFullYear().toString();
+    var mm = (date.getMonth()+1).toString(); // getMonth() is zero-based
+    var dd  = date.getDate().toString();
+    return yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0]); // padding
+}
+
 module.exports = {
-    distanceTo: distanceTo
+    distanceTo: distanceTo,
+    getCurrentDate: getCurrentDate
 };

@@ -5,9 +5,12 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "cron": "^1.1.0",
     "fs": "*",
+    "ical.js": "^1.1.2",
     "mysql": "^2.9.0",
     "q": "^1.4.1",
+    "request": "^2.67.0",
     "restify": "*"
   },
   "devDependencies": {
