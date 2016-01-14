@@ -6,6 +6,7 @@ var getInfo = function(req, res, next) {
     var self = this;
     var requestBody = req.body;
     var geofences = req.body.geofences;
+    var name = req.body.geofences[0];
     for (var i = 0; i < geofences.length; i++) {
         // query for each geofence and get the id
         var query = 'SELECT geofence_id from geofences where geofences.name like "' + geofences[i] + '"';
@@ -30,6 +31,7 @@ var getInfo = function(req, res, next) {
                         for (var i = 0; i < rows.length; i++) {
                             output.push({
                                     "_id": rows[i].geofence_id,
+                                    "name": name,
                                     "type": rows[i].type,
                                     "summary": rows[i].summary,
                                     "data": rows[i].data,
@@ -39,7 +41,7 @@ var getInfo = function(req, res, next) {
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ content: output }));
                 }
-            }); 
+            });
         })
     }
 };
