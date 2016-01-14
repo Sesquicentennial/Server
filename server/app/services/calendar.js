@@ -6,8 +6,12 @@ var getCalendar = function(url,startTime) {
     var def = Q.defer();
     request.get(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            var ics_string = body.toString();
-            def.resolve(parseCalendar(ics_string,startTime));
+            if (body) {
+                var ics_string = body.toString();
+                def.resolve(parseCalendar(ics_string,startTime));
+            } else {   
+                def.resolve({});
+            }
         } else {
             console.log(error.message);
         }
@@ -16,11 +20,9 @@ var getCalendar = function(url,startTime) {
 };
 
 var parseCalendar = function(ics,startDate) {
-
     var parsed_calendar = ical.parse(ics);
     var calendar = new ical.Component(parsed_calendar);
     var events = calendar.getAllSubcomponents('vevent');
-
     var calendarEvents = [];
     for (var i = 0; i < events.length; i++) {
         var title = (events[i].getAllProperties('summary')).length > 0

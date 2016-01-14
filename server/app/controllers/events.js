@@ -16,7 +16,6 @@ var getEvents = function(req, res, next) {
     var limit = req.body.limit ? req.body.limit : 5;
     
     var requestUrl = 'https://apps.carleton.edu/calendar/?start_date=' + startTime + '&format=ical';
-
     calendar.getCalendar(requestUrl,startTime)
     .then( function(response) {
         var response = response.splice(0,limit);
