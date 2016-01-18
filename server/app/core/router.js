@@ -21,6 +21,8 @@ server.use(restify.bodyParser());
 server.post("/geofences", controllers.geofences.getNearbyGeofences);
 server.post("/info", controllers.info.getInfo);
 server.post("/events", controllers.events.getEvents);
+server.post("/quest",controllers.quest.getQuest);
+// server.post("/quest/next",controllers.quest.getWayPoint);
 
 server.listen(3000, function() {
     console.log("Server started @ 3000");

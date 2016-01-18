@@ -4,7 +4,6 @@ var utils = require('../services/utils'),
 
 var getInfo = function(req, res, next) {
 
-    var self = this;
     var requestBody = req.body;
     var geofences = req.body.geofences ? req.body.geofences : [];
     var outerDef = Q.defer();
