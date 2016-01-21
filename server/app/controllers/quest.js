@@ -36,8 +36,8 @@ var getQuest = function (req, res, next) {
 				clue:"I Am the Walrus",
 				hint:"Goo goo g' joob (CMC)",
 				geofence: {
-					lat: 44.462497,
-					lng: -93.153604,
+					lat: 44.461319,
+					lng: -93.156094,
 					rad: 100.0,
 				}
 			}
