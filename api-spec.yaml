@@ -10,12 +10,12 @@ basePath: /1.0
 produces:
   - application/json
 paths:
-  /landmarks:
+  /geofences:
     post:
-      summary: Landmarks close to your location
+      summary: Geofences close to your location
       description: >
-        The Landmarks endpoint delivers Landmark objects representing points of
-        interest that are close by, and their relative location
+        The Landmarks endpoint delivers Geofence objects representing points of
+        interest that are close by and their location
       parameters:
         - name: request
           in: body
@@ -27,18 +27,13 @@ paths:
               timespan:
                 $ref: '#/definitions/Timespan'
                 description: Year from which to collect historical information associated with the landmark (note that it will return closest year to the one given that is more recent than the year given)
-          description: latest event to return
+          description: A current location, a radius in which to search (a geofence) and a timespan with which to limit the search
           required: true
-        - name: userId
-          in: query
-          description: Unique string for the user's name
-          required: false
-          type: string
       tags:
         - Landmarks
       responses:
         '200':
-          description: An array of landmarks
+          description: An array of geofences
           schema:
             type: array
             items:
@@ -47,103 +42,60 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /events/upcoming:
+  /landmarkinfo:
     post:
-      summary: Returns a list of upcoming event objects
+      summary: Returns information about landmarks that are triggered within the client.
       description: >
-        The upcoming endpoint delivers event objects representing upcoming events based on a timestamp.
+        The landmark information endpoint delivers objects that have information on various points of interest, and are associated by name to geofences.
       parameters:
         - name: request
           in: body
           schema:
             type: object
             properties:
+              geofences: 
+                type: array
+                description: An array of the geofences that have been triggered
+                items: 
+                  type: string
               timespan:
                 $ref: '#/definitions/Timespan'
-              limit:
-                type: number
-                format: integer
-                description: Number of objects to return
-          description: latest event to return
+                description: Year from which to collect historical information associated with the landmark (note that it will return closest year to the one given that is more recent than the year given)
+          description: A set of geofences that are triggered and the relevant timespan
           required: true
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: false
-          type: string
       tags:
-        - Events
+        - Landmarks
       responses:
         '200':
-          description: An array of events
+          description: An array of landmarks with information
           schema:
             type: array
             items:
-              $ref: '#/definitions/Event'
+              $ref: '#/definitions/LandmarkInfo'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /events/past:
-    post:
-      summary: Returns a list of past event objects
-      description: >
-        The upcoming endpoint delivers event objects representing past events based on a timestamp.
-      parameters:
-        - name: request
-          in: body
-          schema:
-            type: object
-            properties:
-              timespan:
-                $ref: '#/definitions/Timespan'
-              limit:
-                type: number
-                format: integer
-                description: Number of objects to return
-          description: latest event to return
-          required: true
-        - name: userId
-          in: query
-          description: Unique string for the users name
-          required: false
-          type: string
-      tags:
-        - Events
-      responses:
-        '200':
-          description: An array of events
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Event'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /events/add:
+  /events:
     post:
       summary: Returns a list of upcoming event objects
       description: >
-        The add endpoint allows users to post events
+        The upcoming endpoint delivers event objects representing events based on a timestamp.
       parameters:
         - name: request
           in: body
           schema:
             type: object
             properties:
-              timespan:
-                $ref: '#/definitions/Timespan'
-              venue:
+              startTime:
                 type: string
-                description: The venue of the event
+                description: The earliest date from which to get data
+              limit:
+                type: number
+                format: integer
+                description: Number of objects to return
           description: latest event to return
           required: true
-        - name: userId
-          in: query
-          description: Unique string for the user's name
-          required: true
-          type: string
       tags:
         - Events
       responses:
@@ -157,7 +109,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /social/images:
+  /feed:
     post:
       summary: Recent tagged images in the Sesquicentennial social feed
       description: "The images endpoint allows users to get images from the Sesquicentennial social feed from the app. \n"
@@ -176,11 +128,6 @@ paths:
                 description: 'Latest date to return images from, most recent first.'
           description: object query for getting images from the feed
           required: true
-        - name: userId
-          type: string
-          in: query
-          description: 'Latest date to return images from, most recent first.'
-          required: true
       tags:
         - Social
       responses:
@@ -194,97 +141,50 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /social/addImage:
+  /quest:
     post:
-      summary: Users can add an image to our feed
+      summary: Returns quests with a bunch of small challenges to complete. 
       description: >
-        The addImage endpoint allows the user to post images to the app's social
-        feed. The data is stored in a database.
+        The quest endpoint sends quests with a picture, description, title, and multiple wayPoint objects, which in turn have a geofence, a clue, and hint. 
       parameters:
         - name: request
           in: body
           schema:
             type: object
             properties:
-              image:
-                type: file
-                description: image that will be posted
-              caption:
+              theme:
                 type: string
-                description: catchy but quirky caption
-              timestamp:
-                type: string
-                description: time the image was taken
-          description: object query for sending images
-          required: true
-        - name: userId
-          in: query
-          description: Unique string for the user's name
-          required: true
-          type: string
-      tags:
-        - Social
-      responses:
-        '200':
-          description: State of request (success or failure)
-          schema:
-            type: string
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /games/goal:
-    post:
-      summary: Returns a goal object for the game based on the level and user
-      description: >
-        The goal endpoint delivers a goal object containing an image, a goal
-        name, a clue and a location.
-      parameters:
-        - name: request
-          in: body
-          schema:
-            type: object
-            properties:
-              gameName:
-                type: string
-                description: name of the game being played
-              levelNumber:
+                description: A theme for the desired quests
+              limit:
                 type: number
                 format: integer
-                description: current level of the user in the game
-              timespan:
-                $ref: '#/definitions/Timespan'
-          description: object query for goal objects
-          required: true
-        - name: userId
-          in: query
-          description: Unique string for the user's name
-          required: false
-          type: string
+                description: A limit on the number of quests to be sent
       tags:
-        - Game
+        - Quest
       responses:
         '200':
-          description: A goal object
+          description: An array of quests
           schema:
-            $ref: '#/definitions/Goal'
+            type: array
+            items:
+              $ref: '#/definitions/Waypoint'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
 definitions:
-  Goal:
+  Waypoint:
     type: object
     properties:
       clue:
         type: string
         description: clue on how to get to the next level
-      image:
+      hint: 
         type: string
-        description: a helpful image
+        description: a further clue to help you find the Waypoint
       geofence:
         $ref: '#/definitions/Geofence'
-        description: coordinates for venue
+        description: coordinates for the Waypoint
   Event:
     type: object
     properties:
@@ -329,25 +229,42 @@ definitions:
         type: string
         format: date
         description: end of time range
+  LandmarkInfo:
+    type: object
+    properties:
+      id: 
+        type: number
+        format: integer
+        description: A unique identification value for this landmark
+      name:
+        type: string
+        description: Name of the landmark associated with the information
+      type:
+        type: string
+        description: The type of landmark
+      summary:
+        type: string
+        description: A short snippet about the landmark
+      time: 
+        type: number
+        format: integer
+        description: The relevant year
   Landmark:
     type: object
     properties:
-      description:
+      id: 
+        type: number
+        format: integer
+        description: A unique identification value for this geofence
+      name:
         type: string
-        description: Description of the history of a landmark.
+        description: Name of the landmark associated with this geofence
       geofence:
         $ref: '#/definitions/Geofence'
-        description: An array of four location objects that encompass a geofence around the landmark.
-        items:
-          $ref: '#/definitions/Location'
+        description: The geofence information for this landmark
       date:
         type: string
         description: Date associated with the content for this landmark.
-      content:
-        type: array
-        description: An array of content URLs associated with the landmark
-        items:
-          type: string
   Error:
     type: object
     properties:
