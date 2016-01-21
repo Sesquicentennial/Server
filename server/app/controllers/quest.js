@@ -27,9 +27,9 @@
 // }
 
 var getQuest = function (req, res, next) {
-	var questObject = {
+	var questObject = [{
 		name: 'The Magical Mystery Tour',
-		desc: "Magical Mystery Tour is a record by the English rock group the Beatles that was released as a double EP in the United Kingdom and an LP in the United States.",
+		desc: "The magical mystery tour is coming to take you away! Coming to take you away. Embark on this tittalating and tantalizing journey through the lands of the Walrus!",
 		compMsg: "Congrats",
 		waypoints: {
 			0: {
@@ -42,7 +42,23 @@ var getQuest = function (req, res, next) {
 				}
 			}
 		}
-	}
+	},
+	{
+		name: 'Let it Be',
+		desc: "A quest for those with chiller inclinations. If you can decipher the words of wisdom, you might just be mother Mary. What? You heard me.",
+		compMsg: "You let it be, man.",
+		waypoints: {
+			0: {
+				clue:"I Am the Walrus",
+				hint:"MC^2",
+				geofence: {
+					lat: 44.462497,
+					lng: -93.153604,
+					rad: 100.0,
+				}
+			}
+		}
+	}]
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ content: questObject }));
 }
