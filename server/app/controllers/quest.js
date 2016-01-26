@@ -1,31 +1,3 @@
-/**
-**/
-// var getWayPoint = function(req, res, next) {
-//     var requestBody = req.body;
-//     var output = {
-//     	'fromWayPoint': {
-
-//     	},
-//     	'toWayPoint': {
-
-//     	}
-//     }
-// }
-
-// var getQuest = function(req, res, next) {
-// 	var requestBody = req.body;
-// 	var output = {
-// 		name: '',
-// 		description: '',
-// 	}
-// }
-
-// var getAllQuests = function (req, res, next) {
-// 	var returnQuest = {
-
-// 	}
-// }
-
 var getQuest = function (req, res, next) {
 	var questObject = [{
 		name: 'The Magical Mystery Tour',
@@ -65,5 +37,4 @@ var getQuest = function (req, res, next) {
 
 module.exports = {
 	getQuest: getQuest
-	// getWayPoint: getWayPoint
 }
