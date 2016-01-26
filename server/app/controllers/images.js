@@ -11,8 +11,8 @@ var getImage = function(req, res, next) {
 
 	if (requestBody.imageName && requestBody.imageCategory) {
 		imageHelper.getImage({
-			imageName: request.imageName,
-			imageCategory: request.imageCategory
+			imageName: requestBody.imageName,
+			imageCategory: requestBody.imageCategory
 		}).then(function(response){
 			if (response.err) {
 				res.writeHead(500);

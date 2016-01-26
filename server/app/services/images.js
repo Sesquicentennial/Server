@@ -33,12 +33,13 @@ var getImage = function(args) {
 				output = err;
 			} else {
 				if (rows) {
-					fs.readFile(rows[0].image_path, function(err, data) {
+					var imagePath = imageBase + rows[0].image_category + '/'  + rows[0].image_filename + '.' + rows[0].image_format;
+					fs.readFile(imagePath, function(err, data) {
 						if (err) {
 							output = err;
 						} else {
 							def.resolve({
-								mimeType: mime.lookup(rows[0].image_type),
+								mimeType: mime.lookup(rows[0].image_format),
 								image: data
 							});
 						}
