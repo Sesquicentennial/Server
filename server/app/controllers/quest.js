@@ -30,6 +30,22 @@ var getQuest = function (req, res, next) {
 				}
 			}
 		}
+	},
+	{
+		name: 'Search for Schiller',
+		desc: "Set forth on a journey to find the elusive poet, philosopher, physician, historian, and playwright that we all love for no obvious reason",
+		compMsg: "Welcome to the Carleton Hall of Fame!",
+		waypoints: {
+			0: {
+				clue:"Across the water our spiritual forefathers dined",
+				hint:"Your search will lead you to the East side",
+				geofence: {
+					lat: 44.462497,
+					lng: -93.153604,
+					rad: 100.0,
+				}
+			}
+		}	
 	}]
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ content: questObject }));
