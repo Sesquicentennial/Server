@@ -1,5 +1,6 @@
 var utils = require('../services/utils'),
-    database = require('../core/database');
+    imageHelper = require('../services/images'),
+    database = require('../core/database'),
     Q = require('q');
 
 var getInfo = function(req, res, next) {
@@ -10,8 +11,10 @@ var getInfo = function(req, res, next) {
     var defs = {};
     var promises = [];
 
+
+
     // create query to get geofence ids
-    var query = 'SELECT geofence_id,name from geofences where name like '
+    var query = 'SELECT geofence_id from geofences where name like '
    
     for (var i = 0; i < geofences.length; i++) {
         query = query + '"' + geofences[i] + '"';
@@ -24,29 +27,50 @@ var getInfo = function(req, res, next) {
         } else {
             outerDef.resolve(rows);
             for (var i = 0; i < rows.length; i++) {
-                var geofenceName = rows[i].name;
                 var geofenceId = rows[i].geofence_id;
                 defs[geofenceId] = Q.defer();
                 promises.push(defs[geofenceId].promise);
                 // create request for each geofence
-                var query = 'select * from geofences join \
-                             infoGeofence join info where \
-                             geofences.geofence_id = ' + geofenceId + ' and \
-                             geofences.geofence_id = infoGeofence.g_id \
-                             and info.info_id = infoGeofence.i_id'
+                var query = 'select geofences.geofence_id, info.info_id,\
+                             info.type, info.year, info.month, info.day,\
+                             info.summary, info.data from geofences join \
+                             infoGeofence join info where geofences.geofence_id \
+                             = "' + geofenceId + '" and geofences.geofence_id \
+                            = infoGeofence.g_id and info.info_id = infoGeofence.i_id';
                 // get the data for each geofence
                 database.connection.query(query, function(err, rows, fields) {
                     if (err) {
                         throw err;
                     } else {
                         if (rows) {
-                            defs[rows[0].geofence_id].resolve({
-                                    "_id": rows[0].geofence_id,
-                                    "name": rows[0].name,
-                                    "type": rows[0].type,
-                                    "summary": rows[0].summary,
-                                    "data": rows[0].data,
-                            });
+                            var rows = rows;
+                            var output = [];
+                            var imagePromises = [];
+                            for (var i = 0; i < rows.length; i++) {
+                                if (rows[i].type === 'text') {
+                                    output.push({
+                                        "geofence_id": rows[i].geofence_id,
+                                        "info_id": rows[i].info_id,
+                                        "name": rows[i].name,
+                                        "type": rows[i].type,
+                                        "summary": rows[i].summary,
+                                        "data" : rows[i].data,
+                                        "year": rows[i].year ? rows[i].year : undefined,
+                                        "month": rows[i].month ? rows[i].month : undefined,
+                                        "day": rows[i].day ? rows[i].day : undefined
+                                    });
+                                } else if (rows[i].type === 'image') {
+                                    imagePromises.push(getImage(rows[i]));
+                                }
+                            }
+                            if (imagePromises.length > 0 ) {
+                                Q.all(imagePromises).then( function (images) {
+                                    output = output.concat(images);
+                                    defs[rows[0].geofence_id].resolve(output);
+                                });                                
+                            } else {
+                                defs[rows[0].geofence_id].resolve(output);
+                            }
                         }
                     }
                 });
@@ -71,7 +95,46 @@ var getInfo = function(req, res, next) {
         res.end(JSON.stringify(err));
     });
 }       
-    
+
+var getImage = function (args) {
+    var infoRowData = args;
+    var def = Q.defer();
+    var imgQuery = 'select images.filename, images.format, images.category, \
+                images.image_id from info join imagesInfo join images \
+                where info.info_id like "' + infoRowData.info_id + '" and info.info_id \
+                like imagesInfo.inim_id and images.image_id like imagesInfo.imin_id';
+    database.connection.query(imgQuery, function(err, rows, fields) {
+        if (err) {
+            throw err;
+        } else {
+            if (rows) {
+                for (var i = 0; i < rows.length; i++) {
+                    imageHelper.getImage({
+                        imageName: rows[i].filename,
+                        imageCategory: rows[i].category,
+                        imageFormat: rows[i].format
+                    }).then(function(response) {               
+                        def.resolve({
+                            "geofence_id": infoRowData.geofence_id,
+                            "info_id": infoRowData.info_id,
+                            "type": infoRowData.type,
+                            "caption": infoRowData.summary,
+                            "desc": infoRowData.data,
+                            "year": infoRowData.year ? infoRowData.year : undefined,
+                            "month": infoRowData.month ? infoRowData.month : undefined,
+                            "day": infoRowData.day ? infoRowData.day : undefined,
+                            "data": response.image,
+                            "contentType": response.mimeType
+                        });   
+                    });
+                }
+            }
+        }
+    });
+    return def.promise;
+}
+
+
 module.exports = {
     getInfo: getInfo
 }

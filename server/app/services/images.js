@@ -18,37 +18,21 @@ var Q = require('q')
 
 var getImage = function(args) {
 
-	var imageBase = config.imageStore;
+	var imageBase = config.images_base_path;
 	var def = Q.defer();
 	var output = {};
-
-	if (args.imageName && args.imageCategory) {
-
-		var dbQuery = "SELECT * FROM imageStore where image_name like \
-		'" + args.imageName + "' AND image_category like \
-		'" + args.imageCategory + "'";
-
-		database.connection.query(dbQuery, function(err, rows, fields) {
-			if (err) { 
-				output = err;
-			} else {
-				if (rows) {
-					var imagePath = imageBase + rows[0].image_category + '/'  + rows[0].image_filename + '.' + rows[0].image_format;
-					fs.readFile(imagePath, function(err, data) {
-						if (err) {
-							output = err;
-						} else {
-							def.resolve({
-								mimeType: mime.lookup(rows[0].image_format),
-								image: data
-							});
-						}
-					});
-				}
-			}
-		});
-
-	}
+	var imageFormat = args.imageFormat
+	var imagePath = imageBase + '/' + args.imageCategory + '/' + args.imageName + '.' + args.imageFormat;
+	fs.readFile(imagePath, function(err,data) {
+		if (err) {
+			throw err;
+		} else {
+			def.resolve({
+				mimeType: mime.lookup(imageFormat),
+				image: data
+			});
+		}
+	});
 	return def.promise;
 }
 
