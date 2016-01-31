@@ -14,98 +14,104 @@ var getInfo = function(req, res, next) {
 
 
     // create query to get geofence ids
-    var query = 'SELECT geofence_id from geofences where name like '
-   
-    for (var i = 0; i < geofences.length; i++) {
-        query = query + '"' + geofences[i] + '"';
-        if (i !== geofences.length - 1) query = query + ' OR name like ';
-    }
-    // request the ids from the database
-    database.connection.query(query, function(err, rows, fields) {
-        if (err) {
-            throw err;
-        } else {
-            outerDef.resolve(rows);
-            for (var i = 0; i < rows.length; i++) {
-                var geofenceId = rows[i].geofence_id;
-                defs[geofenceId] = Q.defer();
-                promises.push(defs[geofenceId].promise);
-                // create request for each geofence
-                var query = 'select geofences.name, geofences.geofence_id, info.info_id,\
-                             info.type, info.year, info.month, info.day,\
-                             info.summary, info.data from geofences join \
-                             infoGeofence join info where geofences.geofence_id \
-                             = "' + geofenceId + '" and geofences.geofence_id \
-                            = infoGeofence.g_id and info.info_id = infoGeofence.i_id';
-                // get the data for each geofence
-                database.connection.query(query, function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                    } else {
-                        if (rows.length > 0) {
-                            var rows = rows;
-                            var output = [];
-                            var imagePromises = [];
-                            for (var i = 0; i < rows.length; i++) {
-                                if (rows[i].type === 'text') {
-                                    output.push({
-                                        "geofence_id": rows[i].geofence_id,
-                                        "info_id": rows[i].info_id,
-                                        "name": rows[i].name,
-                                        "type": rows[i].type,
-                                        "summary": rows[i].summary,
-                                        "data" : rows[i].data,
-                                        "year": rows[i].year ? rows[i].year : undefined,
-                                        "month": rows[i].month ? rows[i].month : undefined,
-                                        "day": rows[i].day ? rows[i].day : undefined
-                                    });
-                                } else if (rows[i].type === 'image') {
-                                    imagePromises.push(getImage(rows[i]));
+    
+    if (geofences.length > 0) {
+        var query = 'SELECT geofence_id from geofences where name like '
+       
+        for (var i = 0; i < geofences.length; i++) {
+            query = query + '"' + geofences[i] + '"';
+            if (i !== geofences.length - 1) query = query + ' OR name like ';
+        }
+        // request the ids from the database
+        database.connection.query(query, function(err, rows, fields) {
+            if (err) {
+                throw err;
+            } else {
+                outerDef.resolve(rows);
+                for (var i = 0; i < rows.length; i++) {
+                    var geofenceId = rows[i].geofence_id;
+                    defs[geofenceId] = Q.defer();
+                    promises.push(defs[geofenceId].promise);
+                    // create request for each geofence
+                    var query = 'select geofences.name, geofences.geofence_id, info.info_id,\
+                                 info.type, info.year, info.month, info.day,\
+                                 info.summary, info.data from geofences join \
+                                 infoGeofence join info where geofences.geofence_id \
+                                 = "' + geofenceId + '" and geofences.geofence_id \
+                                = infoGeofence.g_id and info.info_id = infoGeofence.i_id';
+                    // get the data for each geofence
+                    database.connection.query(query, function(err, rows, fields) {
+                        if (err) {
+                            throw err;
+                        } else {
+                            if (rows.length > 0) {
+                                var rows = rows;
+                                var output = [];
+                                var imagePromises = [];
+                                for (var i = 0; i < rows.length; i++) {
+                                    if (rows[i].type === 'text') {
+                                        output.push({
+                                            "geofence_id": rows[i].geofence_id,
+                                            "info_id": rows[i].info_id,
+                                            "name": rows[i].name,
+                                            "type": rows[i].type,
+                                            "summary": rows[i].summary,
+                                            "data" : rows[i].data,
+                                            "year": rows[i].year ? rows[i].year : undefined,
+                                            "month": rows[i].month ? rows[i].month : undefined,
+                                            "day": rows[i].day ? rows[i].day : undefined
+                                        });
+                                    } else if (rows[i].type === 'image') {
+                                        imagePromises.push(getImage(rows[i]));
+                                    }
                                 }
-                            }
-                            if (imagePromises.length > 0 ) {
-                                Q.all(imagePromises).then( function (images) {
-                                    output = output.concat(images);
+                                if (imagePromises.length > 0 ) {
+                                    Q.all(imagePromises).then( function (images) {
+                                        output = output.concat(images);
+                                        defs[rows[0].geofence_id].resolve({
+                                            geofenceName: rows[0].name,
+                                            data : output
+                                        });        
+                                    });                                
+                                } else {
                                     defs[rows[0].geofence_id].resolve({
                                         geofenceName: rows[0].name,
                                         data : output
-                                    });        
-                                });                                
+                                    });
+                                }
                             } else {
-                                defs[rows[0].geofence_id].resolve({
-                                    geofenceName: rows[0].name,
-                                    data : output
-                                });
+                                defs[geofenceId].resolve({});
                             }
-                        } else {
-                            defs[geofenceId].resolve({});
                         }
-                    }
-                });
-            }
-        }
-    });
-
-    outerDef.promise
-    .then(function(){
-        if (promises.length > 0) {
-            Q.all(promises).then( function(response) {
-                var output = {};
-                for (var i = 0; i < response.length; i++) {
-                    output[response[i].geofenceName] = response[i].data;
+                    });
                 }
+            }
+        });
+
+        outerDef.promise
+        .then(function(){
+            if (promises.length > 0) {
+                Q.all(promises).then( function(response) {
+                    var output = {};
+                    for (var i = 0; i < response.length; i++) {
+                        output[response[i].geofenceName] = response[i].data;
+                    }
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ content: output }));
+                });
+            } else {
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ content: output }));
-            });
-        } else {
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({content: {}}));
-        }           
-    })
-    .catch(function (err){
-        res.writeHead(404, {});
-        res.end(JSON.stringify(err));
-    });
+                res.end(JSON.stringify({content: {}}));
+            }           
+        })
+        .catch(function (err){
+            res.writeHead(404, {});
+            res.end(JSON.stringify(err));
+        });
+    } else {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({content : {}}));
+    }
 }       
 
 var getImage = function (args) {
