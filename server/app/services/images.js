@@ -29,7 +29,7 @@ var getImage = function(args) {
 		} else {
 			def.resolve({
 				mimeType: mime.lookup(imageFormat),
-				image: data
+				image: new Buffer(data).toString('base64')
 			});
 		}
 	});
