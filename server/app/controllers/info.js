@@ -31,7 +31,7 @@ var getInfo = function(req, res, next) {
                 defs[geofenceId] = Q.defer();
                 promises.push(defs[geofenceId].promise);
                 // create request for each geofence
-                var query = 'select geofences.geofence_id, info.info_id,\
+                var query = 'select geofences.name, geofences.geofence_id, info.info_id,\
                              info.type, info.year, info.month, info.day,\
                              info.summary, info.data from geofences join \
                              infoGeofence join info where geofences.geofence_id \
@@ -42,7 +42,7 @@ var getInfo = function(req, res, next) {
                     if (err) {
                         throw err;
                     } else {
-                        if (rows) {
+                        if (rows.length > 0) {
                             var rows = rows;
                             var output = [];
                             var imagePromises = [];
@@ -66,11 +66,19 @@ var getInfo = function(req, res, next) {
                             if (imagePromises.length > 0 ) {
                                 Q.all(imagePromises).then( function (images) {
                                     output = output.concat(images);
-                                    defs[rows[0].geofence_id].resolve(output);
+                                    defs[rows[0].geofence_id].resolve({
+                                        geofenceName: rows[0].name,
+                                        data : output
+                                    });        
                                 });                                
                             } else {
-                                defs[rows[0].geofence_id].resolve(output);
+                                defs[rows[0].geofence_id].resolve({
+                                    geofenceName: rows[0].name,
+                                    data : output
+                                });
                             }
+                        } else {
+                            defs[geofenceId].resolve({});
                         }
                     }
                 });
@@ -81,7 +89,11 @@ var getInfo = function(req, res, next) {
     outerDef.promise
     .then(function(){
         if (promises.length > 0) {
-            Q.all(promises).then( function(output) {
+            Q.all(promises).then( function(response) {
+                var output = {};
+                for (var i = 0; i < response.length; i++) {
+                    output[response[i].geofenceName] = response[i].data;
+                }
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ content: output }));
             });
