@@ -37,14 +37,23 @@ var getQuest = function (req, res, next) {
 		compMsg: "Welcome to the Carleton Hall of Fame!",
 		waypoints: {
 			0: {
-				clue:"Across the water our spiritual forefathers dined",
-				hint:"Your search will lead you to the East side",
+				clue: "Across the water our spiritual forefathers dined",
+				hint: "Your search will lead you to the East side",
 				geofence: {
-					lat: 44.462497,
-					lng: -93.153604,
+					lat: 44.460555,
+					lng: -93.156539,
 					rad: 100.0,
 				}
-			}
+			}, 
+            1: {
+                   clue: "Within these cavernous walls you will find Excalibur",
+                   hint: "It was a gymnasium in years past",
+                   geofence: {
+					lat: 44.461319,
+					lng: -93.156094,
+					rad: 100.0,
+                   }
+               } 
 		}	
 	}]
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
