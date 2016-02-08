@@ -38,7 +38,7 @@ var getInfo = function(req, res, next) {
                                  info.summary, info.data from geofences join \
                                  infoGeofence join info where geofences.geofence_id \
                                  = "' + geofenceId + '" and geofences.geofence_id \
-                                = infoGeofence.g_id and info.info_id = infoGeofence.i_id';
+                                = infoGeofence.gfin_id and info.info_id = infoGeofence.ingf_id';
                     // get the data for each geofence
                     database.connection.query(query, function(err, rows, fields) {
                         if (err) {

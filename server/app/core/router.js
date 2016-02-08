@@ -27,8 +27,8 @@ server.post("/info", controllers.info.getInfo);
 server.post("/events", controllers.events.getEvents);
 server.post("/quest",controllers.quest.getQuest);
 server.post("/images",controllers.images.getImage);
+server.post("/quest_re",controllers.quest_re.getQuest);
 
-// server.post("/quest/next",controllers.quest.getWayPoint);
 server.listen(3000, function() {
     console.log("Server started @ 3000");
 });
