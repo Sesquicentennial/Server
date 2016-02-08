@@ -26,7 +26,6 @@ server.post("/geofences", controllers.geofences.getNearbyGeofences);
 server.post("/info", controllers.info.getInfo);
 server.post("/events", controllers.events.getEvents);
 server.post("/quest",controllers.quest.getQuest);
-server.post("/images",controllers.images.getImage);
 server.post("/quest_re",controllers.quest_re.getQuest);
 
 server.listen(3000, function() {

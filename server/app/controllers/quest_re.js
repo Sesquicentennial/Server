@@ -34,7 +34,7 @@ var getQuest = function (req, res, next) {
    	});
 
    	outerDef.promise.then(function(rows){
-
+   	
    		var imageDataList = []
    		var questIds = [];
 		var questData = rows;
@@ -206,8 +206,6 @@ var getClues = function (waypoint) {
 
 			for (var i = 0; i < rows.length; i++) {
 				
-				console.log(rows[i]);
-				// console.log)(output);
 				output[rows[i].type] = {text:rows[i].text};
 				if (rows[i].has_img) {
 					promises.push(getClueImage(rows[i].clue_id));
