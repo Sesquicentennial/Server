@@ -111,7 +111,7 @@ var getWaypoints = function (questList) {
 	var promiseList = [];
 
 	for (var i = 0; i < questList.length; i++ ) {
-		promiseList.push(getWaypoint(questList[i]));
+		promiseList.push(getWaypointsHelper(questList[i]));
 	}
 
 	Q.all(promiseList).then(function (waypoints) {
@@ -132,7 +132,7 @@ var getWaypoints = function (questList) {
 /**
  * Helper method that returns a promise that resolves to a waypoint
  **/ 
-var getWaypoint = function (questId) {
+var getWaypointsHelper = function (questId) {
 
 	var questId = questId;
 	var def = Q.defer();
@@ -174,7 +174,7 @@ var getWaypoint = function (questId) {
 					quest.waypoints[i].clue = response[i].clue;
 					quest.waypoints[i].hint = response[i].hint;
 				}
-				
+
 				def.resolve(quest);				
 			});
 
@@ -192,19 +192,39 @@ var getClues = function (waypoint) {
 
 	var def = Q.defer();
 
-	var query = "SELECT waypoints.lat, waypoints.lng, waypoints.rad, clues.text, clues.type\
-				  FROM waypoints join waypointClue join clues\
-				  WHERE '" + waypoint.id + "' like waypointClue.wpcl_id and clues.clue_id like waypointClue.clwp_id";
+	var query = "SELECT clues.clue_id, clues.text, clues.type, clues.has_img\
+				  FROM waypointClue join clues\
+				  WHERE  waypointClue.wpcl_id like '" + waypoint.id + "' and clues.clue_id like waypointClue.clwp_id";
 
 	database.connection.query(query, function (err, rows, fields) {
 		if (err) {
 			throw err;
-		} else if (rows.length > 0) {
-			output = {};
+		} else if (rows.length > 0) {			
+
+			var output = {};
+			var promises = [];
+
 			for (var i = 0; i < rows.length; i++) {
-				output[rows[i].type] = rows[i].text;
+				
+				console.log(rows[i]);
+				// console.log)(output);
+				output[rows[i].type] = {text:rows[i].text};
+				if (rows[i].has_img) {
+					promises.push(getClueImage(rows[i].clue_id));
+				}
+				
 			}
-			def.resolve(output);
+
+			if (promises.length > 0) {
+				Q.all(promises).then(function (response) {
+					for (var i = 0; i < response.length; i++) {
+						output[response[i].type].image = response[i].image;
+					}
+					def.resolve(output);
+				});
+			} else {
+				def.resolve(output);				
+			}
 		} else {
 			def.resolve({});
 		}
@@ -213,6 +233,39 @@ var getClues = function (waypoint) {
 	return def.promise;
 
 }
+
+var getClueImage = function (id) {
+
+	var def = Q.defer();
+
+	var query = "SELECT clues.clue_id, clues.type, images.filename, images.format, images.category\
+				 FROM clues join clueImage join images\
+				 where clues.clue_id like clim_id and images.image_id like imcl_id";
+
+	database.connection.query(query, function (err, rows, fields) {
+		if (err) {
+			throw err
+		} else if (rows.length > 0) {
+			imageHelper.getImage({
+				imageCategory: rows[0].category,
+				imageName: rows[0].filename,
+				imageFormat: rows[0].format
+			}).then( function (resImage) {
+				def.resolve({
+					image: resImage,
+					type: rows[0].type
+				});
+			});
+		} else {
+			def.resolve({});
+		}
+	});
+
+	return def.promise;
+
+}
+
+
 
 module.exports = {
 	getQuest: getQuest
