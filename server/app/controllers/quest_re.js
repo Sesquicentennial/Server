@@ -14,8 +14,6 @@ var getQuest = function (req, res, next) {
     // JSON object that will contain all the data returned from the server
     var output = [];
 
-    // var defs = {};
-    // var promises = [];
 
     var allQuestsQuery = "SELECT quests.quest_id, quests.name, quests.desc, quests.comp_msg, \
     				  quests.creator, images.filename, images.format, images.category \
@@ -67,7 +65,6 @@ var getQuest = function (req, res, next) {
 			var waypoints = data[1];
 			
 			for (var i = 0; i < questData.length; i++) {
-				console.log(waypoints[questData[i].quest_id]);
 				output.push({
 					name: questData[i].name,
 					desc: questData[i].desc,
@@ -140,8 +137,7 @@ var getWaypoint = function (questId) {
 	var questId = questId;
 	var def = Q.defer();
 
-	var query = "SELECT quests.quest_id, waypoints.clue, waypoints.hint,\
-				 waypoints.lat, waypoints.lng, waypoints.rad \
+	var query = "SELECT quests.quest_id, waypoints.waypoint_id, waypoints.lat, waypoints.lng, waypoints.rad \
 				 FROM quests join questWaypoint join waypoints \
 				 WHERE quwp_id like '" + questId + "' and waypoints.waypoint_id like wpqu_id";
 
@@ -150,21 +146,67 @@ var getWaypoint = function (questId) {
 		if (err) {
 			throw err;
 		} else if (rows.length > 0) {
+			
+			var promises = [];
+
 			var quest = {
 				questId: questId,
 				waypoints: []
 			};
 
 			for (var i = 0; i < rows.length; i++) {
-				quest.waypoints.push({
-					clue: rows[0].clue,
-					hint: rows[0].hint,
-					lat: rows[0].lat,
-					lng: rows[0].lng,
-					rad: rows[0].rad
-				});
+				
+				var waypoint = {
+					lat: rows[i].lat,
+					lng: rows[i].lng,
+					rad: rows[i].rad					
+				}
+
+				promises.push(getClues({"id":rows[i].waypoint_id}));
+
+				quest.waypoints.push(waypoint);
+			
 			}
-			def.resolve(quest);
+
+			Q.all(promises).then(function (response) {
+				
+				for (var i = 0; i < quest.waypoints.length; i++) {
+					quest.waypoints[i].clue = response[i].clue;
+					quest.waypoints[i].hint = response[i].hint;
+				}
+				
+				def.resolve(quest);				
+			});
+
+		}
+	});
+
+	return def.promise;
+
+}
+
+/**
+ * Method for Getting all the clues and hints associated with each waypoint
+ **/
+var getClues = function (waypoint) {
+
+	var def = Q.defer();
+
+	var query = "SELECT waypoints.lat, waypoints.lng, waypoints.rad, clues.text, clues.type\
+				  FROM waypoints join waypointClue join clues\
+				  WHERE '" + waypoint.id + "' like waypointClue.wpcl_id and clues.clue_id like waypointClue.clwp_id";
+
+	database.connection.query(query, function (err, rows, fields) {
+		if (err) {
+			throw err;
+		} else if (rows.length > 0) {
+			output = {};
+			for (var i = 0; i < rows.length; i++) {
+				output[rows[i].type] = rows[i].text;
+			}
+			def.resolve(output);
+		} else {
+			def.resolve({});
 		}
 	});
 
