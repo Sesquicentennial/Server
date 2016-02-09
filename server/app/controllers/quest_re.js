@@ -3,7 +3,9 @@ var utils = require('../services/utils'),
     database = require('../core/database'),
     Q = require('q');
 
+
 var getQuest = function (req, res, next) {
+
 
 	// checks to see if optional parameter limit included in request
     var limit = req.body.limit ? req.body.limit : 20;
@@ -22,6 +24,7 @@ var getQuest = function (req, res, next) {
     				  and images.image_id like imqu_id";
 
    	database.connection.query(allQuestsQuery, function (err, rows, fields) {
+
    		if (err) {
    			throw err
    		} else {
@@ -60,7 +63,6 @@ var getQuest = function (req, res, next) {
 		Q.all([imagesPromise, waypointsPromise])
 		.then (function (data) {	
 
-
 			var images = data[0];
 			var waypoints = data[1];
 			
@@ -91,7 +93,7 @@ var getQuest = function (req, res, next) {
 // takes in a list of image information, queries DB and returns a promise that resolves to 64bit
 // string representation of images
 var getImages = function (imageList) {
-	
+
 	var def = Q.defer();
 
 	imageHelper.getImages(imageList).then( function (images) {
@@ -115,7 +117,7 @@ var getWaypoints = function (questList) {
 	}
 
 	Q.all(promiseList).then(function (waypoints) {
-		
+
 		var output = {};
 
 		for (var i = 0; i < waypoints.length; i++) {
@@ -137,16 +139,16 @@ var getWaypointsHelper = function (questId) {
 	var questId = questId;
 	var def = Q.defer();
 
-	var query = "SELECT quests.quest_id, waypoints.waypoint_id, waypoints.lat, waypoints.lng, waypoints.rad \
-				 FROM quests join questWaypoint join waypoints \
-				 WHERE quwp_id like '" + questId + "' and waypoints.waypoint_id like wpqu_id";
+	var query = "SELECT questWaypoint.quwp_id as quest_id, waypoints.waypoint_id, waypoints.lat, waypoints.lng, waypoints.rad \
+				 FROM questWaypoint join waypoints \
+				 WHERE questWaypoint.quwp_id like '" + questId + "' and waypoints.waypoint_id like questWaypoint.wpqu_id";
 
 
 	database.connection.query(query, function (err, rows, fields) {
 		if (err) {
 			throw err;
 		} else if (rows.length > 0) {
-			
+		
 			var promises = [];
 
 			var quest = {
@@ -169,10 +171,11 @@ var getWaypointsHelper = function (questId) {
 			}
 
 			Q.all(promises).then(function (response) {
-				
+				console.log(response);
 				for (var i = 0; i < quest.waypoints.length; i++) {
 					quest.waypoints[i].clue = response[i].clue;
 					quest.waypoints[i].hint = response[i].hint;
+					quest.waypoints[i].completion = response[i].completion;
 				}
 
 				def.resolve(quest);				
@@ -238,7 +241,7 @@ var getClueImage = function (id) {
 
 	var query = "SELECT clues.clue_id, clues.type, images.filename, images.format, images.category\
 				 FROM clues join clueImage join images\
-				 where clues.clue_id like clim_id and images.image_id like imcl_id";
+				 where clues.clue_id like '" + id + "' and clues.clue_id like clueImage.clim_id and images.image_id like clueImage.imcl_id";
 
 	database.connection.query(query, function (err, rows, fields) {
 		if (err) {
