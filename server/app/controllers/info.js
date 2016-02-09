@@ -56,6 +56,7 @@ var getInfo = function(req, res, next) {
                                             "name": rows[i].name,
                                             "type": rows[i].type,
                                             "summary": rows[i].summary,
+                                            "desc": rows[i].data, // HACKY FIX to make Chet feel better @todo: remove
                                             "data" : rows[i].data,
                                             "year": rows[i].year ? rows[i].year : undefined,
                                             "month": rows[i].month ? rows[i].month : undefined,
