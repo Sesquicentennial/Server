@@ -27,6 +27,8 @@ server.post("/info", controllers.info.getInfo);
 server.post("/events", controllers.events.getEvents);
 server.post("/quest",controllers.quest.getQuest);
 server.post("/quest_re",controllers.quest_re.getQuest);
+server.post("/memories_fetch",controllers.memories.getMemories);
+server.post("/memories_add",controllers.memories.addMemories);
 
 server.listen(3000, function() {
     console.log("Server started @ 3000");
