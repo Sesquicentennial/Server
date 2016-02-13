@@ -1,44 +1,7 @@
 var _ = require('underscore'),
 	Q = require('Q'),
 	request = require('request'),
-	Flickr = require("flickrapi"),
-	flickrHelper = require('../services/flickrHelper'),
-	flickrHandler = undefined
-	config = require("../../config");
-
-/**
- *
- * Checks to see if Flicker's api handler has already been initialized
- * if not, uses credentials in config file to initialize it
- *
- * Returns:
- * 	- promise that resolves to Flickr's api handler
- *
- **/
-var getFlickrHandler = function() {
-
-	var def = Q.defer();
-
-	var flickrOptions = config.flickrOptions;
-
-	if (!flickrHandler) {
-		Flickr.authenticate(flickrOptions, function(err, flickr) {
-			if (flickr) {
-				flickrHandler = flickr;
-				def.resolve(flickr);
-			} else if (err) {
-				throw err
-			} else {
-				console.log('Could not get Flickr Handler');
-			}
- 		})
-	} else {
-		def.resolve(flickrHandler);
-	}
-
-	return def.promise;
-
-}
+	flickrHelper = require('../services/flickr');
 
 /**
  *
@@ -52,29 +15,28 @@ var getFlickrHandler = function() {
  *
  **/
 var getMemories = function(req, res, next) {
-	
-	getFlickrHandler().then(function(response) {
 
-		var handler = response;
+	flickrHelper.getFlickrHandler().then(function(response) {
+
+		var handler = response.flickrHandler,
+			flickrConfig = response.flickrConfig;
 
 		var imageRequest = {
-			api_key: config.flickrOptions.api_key,
-			user_id: config.flickrOptions.user_id,
+			api_key: flickrConfig.api_key,
+			user_id: flickrConfig.user_id,
 			authenticated: true,
 			lat: req.body.lat ? req.body.lat : 44.461319, // defaults to Sayles
 			lon: req.body.lng ? req.body.lng : -93.156094, // defaults to Sayles
 			radius: req.body.rad ? req.body.rad : 0.1
 		};
 
-		/**
-		 * Search for images around the given location
-		 **/
+		// Search for images around the given location
 		handler.photos.search(imageRequest, function(err, response) {
 		
 			if (err) {
 				throw err;
 			} else if (response) {
-		
+
 				var photos = response.photos.photo,
 				 	imagePromises = [],
 				 	MetadataPromises = [],
@@ -91,7 +53,7 @@ var getMemories = function(req, res, next) {
 				}
 			
 				Q.all(imagePromises.concat(MetadataPromises)).then( function(response) {
-					
+
 					for (var i = 0; i < ids.length; i++) {
 						imageProps = _.where(response, {id : ids[i] });
 						var imageObj = {}
@@ -100,7 +62,7 @@ var getMemories = function(req, res, next) {
 						}
 						output.push(imageObj);
 					}
-                    
+
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ content: output }));
 				
