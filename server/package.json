@@ -1,6 +1,8 @@
 {
   "name": "Carleton-Sesquincentenial-App",
   "version": "0.0.1",
+  "description": "Server-side API for the Sesquicentennial mobile apps, written in Node.js.",
+  "repository": "https://github.com/Sesquicentennial/Server",
   "scripts": {
     "test": "mocha test"
   },
@@ -13,7 +15,8 @@
     "mysql": "^2.9.0",
     "q": "^1.4.1",
     "request": "^2.67.0",
-    "restify": "*"
+    "restify": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "chai": "^3.4.0",

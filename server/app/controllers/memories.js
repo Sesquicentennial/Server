@@ -1,5 +1,6 @@
 var Q = require('Q'),
 	request = require('request'),
+	_ = require('underscore'),
 	Flickr = require("flickrapi"),
 	config = require("../../config");
 	flickrHelper = require('../services/flickrHelper'),
@@ -44,32 +45,44 @@ var getMemories = function(req, res, next) {
 			radius: req.body.rad ? req.body.rad : 0.1
 		};
 
+		/**
+		 * Search for images around the given location
+		 **/
 		handler.photos.search(imageRequest, function(err, response) {
 			if (err) {
 				throw err;
 			} else if (response) {
+				// console.log(response.photos.photo[0]);
 				var photos = response.photos.photo;
+				// this array will store each image promise
+				var imagePromises = [];
+				var MetadataPromises = [];
+				var ids = [];
 				for (var i = 0; i < photos.length; i++) {
-					handler.photos.getSizes({
+					MetadataPromises.push(getImageInfo(handler, {
 						api_key: imageRequest.api_key,
 						photo_id: photos[i].id
-					}, function (err, response) {
-						if (err) {
-							throw err
-						} else {
-							imageUrl = response.sizes.size[response.sizes.size.length - 1].source;
-							// console.log(sizes[sizes.length - 1]);
-							request(imageUrl, function (error, response, body) {
-								if (!error && response.statusCode == 200) {
-									image = new Buffer(body.toString(), "binary").toString("base64")
-									console.log(image) // Show the HTML for the Google homepage.
-								}
-							});
-						}
-					});
+					}));
+					imagePromises.push(downloadImage(handler, photos[i].id));
+					ids.push(photos[i].id);
 				}
+				Q.all(imagePromises.concat(MetadataPromises)).then( function(response) {
+					var output = [];
+					for (var i = 0; i < ids.length; i++) {
+						imageProps = _.where(response, {id : ids[i] });
+						var imageObj = {}
+						for (var j = 0; j < imageProps.length; j++) {
+							_.extend(imageObj, imageProps[j]);
+						}
+						output.push(imageObj);
+					}
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ content: output }));
+				})
 			} else {
 				console.log('No data returned from Flickr');
+                res.writeHead(500, {});
+	            res.end({});
 			}
 		});
 
@@ -120,6 +133,62 @@ var addMemories = function(req, res, next) {
 			});
 		}
 	});
+}
+
+var getImageInfo = function (flickrApiHandler, imageParams) {
+	
+	var def = Q.defer();
+
+	flickrApiHandler.photos.getInfo(imageParams, function (err, response) {
+		if (err) {
+			throw err
+		} else {
+			def.resolve({
+				id : response.photo.id,
+				caption : response.photo.title._content,
+				desc : response.photo.description._content,
+				uploader : 'carl150',
+				timestamps: {
+					posted: response.photo.dates.posted,
+					taken: response.photo.dates.taken
+				}
+			});
+		}
+	});
+
+	return def.promise;
+
+}
+
+var downloadImage = function (flickrApiHandler, imageId) {
+
+	var def = Q.defer();
+
+	flickrApiHandler.photos.getSizes({ photo_id: imageId }, function (err, response) {
+		if (err) {
+			throw err
+		} else {
+			imageUrl = response.sizes.size[response.sizes.size.length - 1].source;
+			request(imageUrl, function (error, response, body) {
+				if (!error && response.statusCode == 200) {
+					image = new Buffer(body.toString(), "binary").toString("base64")
+					def.resolve({
+						id: imageId,
+						image: image
+					});
+				} else {
+					if (err) {
+						throw err
+					} else {
+						// @todo: return 500 here 
+						console.log('Image not found');
+					}
+				}
+			});		
+		}
+	});
+
+	return def.promise;
 }
 
 module.exports = {
