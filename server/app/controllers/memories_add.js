@@ -31,50 +31,44 @@ var addMemory = function(req, res, next) {
 
 		if (request) {
 
-			var imageFilePath = flickrConfig.flickrDir + '/' + request.fileName,
+			var imageFilePath = flickrConfig.flickrDir + '/tempUploadFile.jpg' ,
 				imageData = {
 					photos : [{
-						title : request.imageTitle,
+						title : request.title,
 						description : request.desc,
 						is_public : 0, // this makes it private so we can moderate the stream
 						tags : [],  
 						photo : imageFilePath
 					}]
-				}
+				};
 
 			// write file to system
 			writeImage({
-
 				fileName: imageFilePath,
-				fileData: req.body.imageData
-
+				fileData: request.image
 			}).then(function (response) {
-
-				uploadImage(flickrConfig,imageData).then( function (response) {
-
-					console.log('Uploaded Successfully to Flickr');
-					
-					var imageId = response.result[0];
-					
-					// delete image from fileSystem
-					deleteImage(imageFilePath)
-					.then( function() {
-						console.log('Deleted Image');
-					});
-					
-					handler.photos.geo.setLocation({
-						api_key : flickrConfig.api_key,
-						photo_id : imageId,
-						lat : request.lat,
-						lon : request.lng  
-					}, function (err, res) {
-						
-						console.log('Added Geolocation');
-
+				uploadImage(flickrConfig,imageData).then( function (image) {
+					Q.all(
+						[
+							deleteImage(imageFilePath),
+							addGeoData(handler, {
+								api_key : flickrConfig.api_key,
+								photo_id : image.id,
+								lat : request.location.lat,
+								lon : request.location.lng 
+							}),
+							addTimestamps(handler, {
+								api_key : flickrConfig.api_key,
+								photo_id : image.id,
+								date_taken : request.timestamp								
+							})
+						]
+					).then(function (response) {
+						console.log('Memory Added Successfully!');
+						console.log('--------------------------');
 	                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-	                    res.end(JSON.stringify({ status : 'Success!' }));
-
-   					});
+	                    res.end(JSON.stringify({ status : 'Success!' }));	        
+					});
 
 				});
 
@@ -83,6 +77,66 @@ var addMemory = function(req, res, next) {
 		}
 
 	});
+
+}
+
+/**
+ *
+ * Helper method that uses Flicker's api handler to get metadata
+ * for the image
+ *
+ * Params:
+ *	- flickerApiHandler: handler for flicker's api
+ *	- imageParams : object that contains api_key for flickr and an image id
+ *
+ * Returns:
+ * 	- promise that resolves to object containing metadata for the requested image
+ *
+ **/
+addTimestamps = function (flickrApiHandler, requestOptions) {
+	
+	var def = Q.defer();
+
+	flickrApiHandler.photos.setDates(requestOptions, function (err, res) {
+		if (err) {
+			throw err
+ 		} else {
+			console.log('> Timestamps Added Successfully');
+ 			def.resolve(res);
+ 		}
+	})
+
+	return def.promise;
+
+}
+
+/**
+ *
+ * Helper method that uses Flicker's api handler to get metadata
+ * for the image
+ *
+ * Params:
+ *	- flickerApiHandler: handler for flicker's api
+ *	- imageParams : object that contains api_key for flickr and an image id
+ *
+ * Returns:
+ * 	- promise that resolves to object containing metadata for the requested image
+ *
+ **/
+var addGeoData = function(flickrApiHandler, requestOptions) {
+
+	var def = Q.defer();
+
+	flickrApiHandler.photos.geo.setLocation(requestOptions, function (err, res) {
+		if (err) {
+			throw err
+ 		} else {
+			console.log('> Geotagging Completed Successfully');
+ 			def.resolve(res);
+ 		}
+	})
+
+	return def.promise;
 
 }
 
@@ -110,8 +164,9 @@ var uploadImage = function(flickrOptions, uploadOptions) {
 			if(err) {
 				throw err;
 			} else {
+				console.log('> Image Uploaded Successfully to Flickr');
 				def.resolve({
-					result: result
+					id : result[0]
 				});
 			}
 		});
@@ -145,6 +200,7 @@ var writeImage = function(args) {
 		if (err) {
 			throw err
 		} else {
+			console.log('> Image Written Successfully to FileSystem');
 			def.resolve({});
 		}
 	});
@@ -164,13 +220,14 @@ var writeImage = function(args) {
  *
  **/
 var deleteImage = function(filePath) {
-	console.log(filePath);
+
 	var def = Q.defer();
 
 	fs.unlink(filePath, function(err) {
 	   if (err) {
 	       throw err;
 	   } else {
+			console.log('> Image Deleted Successfully From FileSystem');
 	   		def.resolve({});
 	   }
 	});
@@ -178,7 +235,6 @@ var deleteImage = function(filePath) {
 	return def.promise;
 
 }
-
 
 module.exports = {
 	addMemory : addMemory
