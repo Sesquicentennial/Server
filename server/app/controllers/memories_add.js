@@ -17,8 +17,12 @@ var _ = require('underscore'),
  *
  **/	
 var addMemory = function(req, res, next) {
+	
+	console.log('--------------------------');
+	console.log('Add Memory Endpoint Called');
 
-	var request = req.body;
+	var res = res,
+		request = req.body;
 	
 	flickrHelper.getFlickrHandler().then(function(response) {
 
@@ -29,25 +33,55 @@ var addMemory = function(req, res, next) {
 
 			var imageFilePath = flickrConfig.flickrDir + '/' + request.fileName,
 				imageData = {
-					photos: [{
-						title: request.imageTitle,
-						description: request.desc,
-						tags: [],
-						photo: imageFilePath
+					photos : [{
+						title : request.imageTitle,
+						description : request.desc,
+						is_public : 0, // this makes it private so we can moderate the stream
+						tags : [],  
+						photo : imageFilePath
 					}]
 				}
 
 			// write file to system
 			writeImage({
+
 				fileName: imageFilePath,
 				fileData: req.body.imageData
+
 			}).then(function (response) {
+
 				uploadImage(flickrConfig,imageData).then( function (response) {
-					// add geotagging to the image
-					// delete local copy of image
-				})
+
+					console.log('Uploaded Successfully to Flickr');
+					
+					var imageId = response.result[0];
+					
+					// delete image from fileSystem
+					deleteImage(imageFilePath)
+					.then( function() {
+						console.log('Deleted Image');
+					});
+					
+					handler.photos.geo.setLocation({
+						api_key : flickrConfig.api_key,
+						photo_id : imageId,
+						lat : request.lat,
+						lon : request.lng  
+					}, function (err, res) {
+						
+						console.log('Added Geolocation');
+
+	                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+	                    res.end(JSON.stringify({ status : 'Success!' }));
+
+   					});
+
+				});
+
 			});
+
 		}
+
 	});
 
 }
@@ -118,6 +152,33 @@ var writeImage = function(args) {
 	return def.promise;
 
 }
+
+
+/**
+ *
+ * Checks to see if Flicker's api handler has already been initialized
+ * if not, uses credentials in config file to initialize it
+ *
+ * Returns:
+ * 	- promise that resolves to Flickr's api handler
+ *
+ **/
+var deleteImage = function(filePath) {
+	console.log(filePath);
+	var def = Q.defer();
+
+	fs.unlink(filePath, function(err) {
+	   if (err) {
+	       throw err;
+	   } else {
+	   		def.resolve({});
+	   }
+	});
+
+	return def.promise;
+
+}
+
 
 module.exports = {
 	addMemory : addMemory
