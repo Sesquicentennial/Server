@@ -1,11 +1,20 @@
-var Q = require('Q'),
+var _ = require('underscore'),
+	Q = require('Q'),
 	request = require('request'),
-	_ = require('underscore'),
 	Flickr = require("flickrapi"),
-	config = require("../../config");
 	flickrHelper = require('../services/flickrHelper'),
 	flickrHandler = undefined
+	config = require("../../config");
 
+/**
+ *
+ * Checks to see if Flicker's api handler has already been initialized
+ * if not, uses credentials in config file to initialize it
+ *
+ * Returns:
+ * 	- promise that resolves to Flickr's api handler
+ *
+ **/
 var getFlickrHandler = function() {
 
 	var def = Q.defer();
@@ -28,8 +37,20 @@ var getFlickrHandler = function() {
 	}
 
 	return def.promise;
+
 }
 
+/**
+ *
+ * Called by the HTTPS request. Formulates a request using the HTTP body
+ * and uses Flicker's api handler to get Image Ids for all nearby images.
+ * Uses helper methods to get the metadata and the image content sends
+ * them back to the client
+ *
+ * Returns:
+ * 	- list of objects each containing an image and associated metadata
+ *
+ **/
 var getMemories = function(req, res, next) {
 	
 	getFlickrHandler().then(function(response) {
@@ -49,15 +70,17 @@ var getMemories = function(req, res, next) {
 		 * Search for images around the given location
 		 **/
 		handler.photos.search(imageRequest, function(err, response) {
+		
 			if (err) {
 				throw err;
 			} else if (response) {
-				// console.log(response.photos.photo[0]);
-				var photos = response.photos.photo;
-				// this array will store each image promise
-				var imagePromises = [];
-				var MetadataPromises = [];
-				var ids = [];
+		
+				var photos = response.photos.photo,
+				 	imagePromises = [],
+				 	MetadataPromises = [],
+				 	ids = [],
+				 	output = [];
+
 				for (var i = 0; i < photos.length; i++) {
 					MetadataPromises.push(getImageInfo(handler, {
 						api_key: imageRequest.api_key,
@@ -66,8 +89,9 @@ var getMemories = function(req, res, next) {
 					imagePromises.push(downloadImage(handler, photos[i].id));
 					ids.push(photos[i].id);
 				}
+			
 				Q.all(imagePromises.concat(MetadataPromises)).then( function(response) {
-					var output = [];
+					
 					for (var i = 0; i < ids.length; i++) {
 						imageProps = _.where(response, {id : ids[i] });
 						var imageObj = {}
@@ -76,9 +100,12 @@ var getMemories = function(req, res, next) {
 						}
 						output.push(imageObj);
 					}
+                    
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ content: output }));
-				})
+				
+				});
+			
 			} else {
 				console.log('No data returned from Flickr');
                 res.writeHead(500, {});
@@ -90,51 +117,19 @@ var getMemories = function(req, res, next) {
 
 }
 
-var addMemories = function(req, res, next) {
-
-	var request = req.body;
-
-
-	getFlickrHandler().then(function(response) {
-
-		var handler = response;
-
-		if (request) {
-
-			var imageData = [{
-				fileName: request.fileName,
-				title: request.imageTitle,
-				tags: [],
-				photo: config.flickrDir + request.fileName
-			}]
-
-			console.log(imageData);
-
-			// write file to system
-			flickrHelper.writeImage({
-				fileName: req.body.fileName,
-				fileData: req.body.imageData
-			}).then(function () {
-				console.log('here');
-				handler.upload( imageData, FlickrOptions, function(err, result) {
-					if (err) {
-						throw err;
-					} else {
-						console.log("phoqtos uploaded", result);
-						// add geotagging
-						// then delete
-						flickrHelper.deleteImage(imageData.fileName)
-						.then(function(res) {
-							res.writeHead(200, {});
-							res.end({});
-						});
-					}
-				});
-			});
-		}
-	});
-}
-
+/**
+ *
+ * Helper method that uses Flicker's api handler to get metadata
+ * for the image
+ *
+ * Params:
+ *	- flickerApiHandler: handler for flicker's api
+ *	- imageParams : object that contains api_key for flickr and an image id
+ *
+ * Returns:
+ * 	- promise that resolves to object containing metadata for the requested image
+ *
+ **/
 var getImageInfo = function (flickrApiHandler, imageParams) {
 	
 	var def = Q.defer();
@@ -147,7 +142,7 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 				id : response.photo.id,
 				caption : response.photo.title._content,
 				desc : response.photo.description._content,
-				uploader : 'carl150',
+				uploader : 'carl150', // @todo: figure out a better solution to this
 				timestamps: {
 					posted: response.photo.dates.posted,
 					taken: response.photo.dates.taken
@@ -160,6 +155,21 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 
 }
 
+/**
+ *
+ * Helper method that uses Flicker's api handler to get the url for the image
+ * and uses the request api to download the image. Encodes image into a 64bit
+ * binary string and wraps it up in a promise
+ *
+ * Params:
+ *	- flickerApiHandler: handler for flicker's api
+ *	- imageId : id for the image being requested
+ *
+ * Returns:
+ * 	- promise that resolves to an object containg the imageId and the 64bit
+ *	  encoded string containing the image
+ *
+ **/
 var downloadImage = function (flickrApiHandler, imageId) {
 
 	var def = Q.defer();
@@ -189,9 +199,9 @@ var downloadImage = function (flickrApiHandler, imageId) {
 	});
 
 	return def.promise;
+
 }
 
 module.exports = {
-	getMemories: getMemories,
-	addMemories: addMemories
+	getMemories: getMemories
 }
