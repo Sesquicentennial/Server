@@ -1,6 +1,8 @@
 var Q = require('Q'),
+	request = require('request'),
 	Flickr = require("flickrapi"),
 	config = require("../../config");
+	flickrHelper = require('../services/flickrHelper'),
 	flickrHandler = undefined
 
 var getFlickrHandler = function() {
@@ -31,9 +33,9 @@ var getMemories = function(req, res, next) {
 	
 	getFlickrHandler().then(function(response) {
 
-		handler = response;
+		var handler = response;
 
-		var request = {
+		var imageRequest = {
 			api_key: config.flickrOptions.api_key,
 			user_id: config.flickrOptions.user_id,
 			authenticated: true,
@@ -42,11 +44,30 @@ var getMemories = function(req, res, next) {
 			radius: req.body.rad ? req.body.rad : 0.1
 		};
 
-		handler.photos.search(request, function(err, response) {
+		handler.photos.search(imageRequest, function(err, response) {
 			if (err) {
 				throw err;
 			} else if (response) {
-				console.log(response);
+				var photos = response.photos.photo;
+				for (var i = 0; i < photos.length; i++) {
+					handler.photos.getSizes({
+						api_key: imageRequest.api_key,
+						photo_id: photos[i].id
+					}, function (err, response) {
+						if (err) {
+							throw err
+						} else {
+							imageUrl = response.sizes.size[response.sizes.size.length - 1].source;
+							// console.log(sizes[sizes.length - 1]);
+							request(imageUrl, function (error, response, body) {
+								if (!error && response.statusCode == 200) {
+									image = new Buffer(body.toString(), "binary").toString("base64")
+									console.log(image) // Show the HTML for the Google homepage.
+								}
+							});
+						}
+					});
+				}
 			} else {
 				console.log('No data returned from Flickr');
 			}
@@ -58,8 +79,47 @@ var getMemories = function(req, res, next) {
 
 var addMemories = function(req, res, next) {
 
+	var request = req.body;
 
 
+	getFlickrHandler().then(function(response) {
+
+		var handler = response;
+
+		if (request) {
+
+			var imageData = [{
+				fileName: request.fileName,
+				title: request.imageTitle,
+				tags: [],
+				photo: config.flickrDir + request.fileName
+			}]
+
+			console.log(imageData);
+
+			// write file to system
+			flickrHelper.writeImage({
+				fileName: req.body.fileName,
+				fileData: req.body.imageData
+			}).then(function () {
+				console.log('here');
+				handler.upload( imageData, FlickrOptions, function(err, result) {
+					if (err) {
+						throw err;
+					} else {
+						console.log("phoqtos uploaded", result);
+						// add geotagging
+						// then delete
+						flickrHelper.deleteImage(imageData.fileName)
+						.then(function(res) {
+							res.writeHead(200, {});
+							res.end({});
+						});
+					}
+				});
+			});
+		}
+	});
 }
 
 module.exports = {
