@@ -8,12 +8,12 @@ var _ = require('underscore'),
 /**
  *
  * Called by the HTTPS request. Formulates a request using the HTTP body
- * and uses Flicker's api handler to get Image Ids for all nearby images.
- * Uses helper methods to get the metadata and the image content sends
- * them back to the client
+ * and uses Flicker's api handler to write the image to the file system
+ * upload the image to Flickr, delete image from the file system, add
+ * geotagging to the image and timestamp data
  *
  * Returns:
- * 	- list of objects each containing an image and associated metadata
+ * 	- status of the request (success or failure)
  *
  **/	
 var addMemory = function(req, res, next) {
@@ -82,12 +82,13 @@ var addMemory = function(req, res, next) {
 
 /**
  *
- * Helper method that uses Flicker's api handler to get metadata
- * for the image
+ * Helper method that uses Flicker's api handler to upload date and time
+ * meta data
  *
  * Params:
  *	- flickerApiHandler: handler for flicker's api
- *	- imageParams : object that contains api_key for flickr and an image id
+ *	- requestOptions : object that contains api_key, image id and date at which
+ *					   it was taken
  *
  * Returns:
  * 	- promise that resolves to object containing metadata for the requested image
@@ -112,12 +113,11 @@ addTimestamps = function (flickrApiHandler, requestOptions) {
 
 /**
  *
- * Helper method that uses Flicker's api handler to get metadata
- * for the image
+ * Helper method that uses Flicker's api handler to add geo data to image
  *
  * Params:
  *	- flickerApiHandler: handler for flicker's api
- *	- imageParams : object that contains api_key for flickr and an image id
+ *	- requestOptions : object that contains api_key, image id and location info
  *
  * Returns:
  * 	- promise that resolves to object containing metadata for the requested image
@@ -142,17 +142,16 @@ var addGeoData = function(flickrApiHandler, requestOptions) {
 
 /**
  *
- * Helper method that uses Flicker's api handler to get the url for the image
- * and uses the request api to download the image. Encodes image into a 64bit
- * binary string and wraps it up in a promise
+ * Helper method that uses Flicker's api to (not the same as the handler) 
+ * upload an image from the file system to the flickr account 
  *
  * Params:
- *	- flickrOptions: handler for flicker's api
- *	- uploadOptions : id for the image being requested
+ *	- flickrOptions : options to authenticate the flickr api
+ *	- uploadOptions : path of image on the file system, title, desc and other
+ * 					  params
  *
  * Returns:
- * 	- promise that resolves to an object containg the imageId and the 64bit
- *	  encoded string containing the image
+ * 	- promise that resolves to an object containg the imageId
  *
  **/
 var uploadImage = function(flickrOptions, uploadOptions) {
@@ -178,17 +177,13 @@ var uploadImage = function(flickrOptions, uploadOptions) {
 
 /**
  *
- * Helper method that uses Flicker's api handler to get the url for the image
- * and uses the request api to download the image. Encodes image into a 64bit
- * binary string and wraps it up in a promise
+ * Writes image to file system using the FS module
  *
  * Params:
- *	- flickerApiHandler: handler for flicker's api
- *	- imageId : id for the image being requested
+ *	- args : contains file name of image and the 64 bit string representation
  *
  * Returns:
- * 	- promise that resolves to an object containg the imageId and the 64bit
- *	  encoded string containing the image
+ * 	- promise that resolves when image is successfully written to the file system
  *
  **/
 var writeImage = function(args) {
@@ -212,11 +207,13 @@ var writeImage = function(args) {
 
 /**
  *
- * Checks to see if Flicker's api handler has already been initialized
- * if not, uses credentials in config file to initialize it
+ * Deletes image from file system if it exists
+ *
+ * Params:
+ *	- filePath: absolute file path of the image
  *
  * Returns:
- * 	- promise that resolves to Flickr's api handler
+ * 	- promise that resolves when image is deleted
  *
  **/
 var deleteImage = function(filePath) {
