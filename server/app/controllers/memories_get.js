@@ -1,6 +1,7 @@
 var _ = require('underscore'),
-	Q = require('Q'),
-	request = require('request'),
+	Q = require('q'),
+	HTTP = require('http'),
+	URL = require('url'),
 	flickrHelper = require('../services/flickr');
 
 /**
@@ -16,6 +17,9 @@ var _ = require('underscore'),
  **/
 var getMemories = function(req, res, next) {
 
+	console.log('--------------------------');
+	console.log('> Get Memory Endpoint Called');
+
 	flickrHelper.getFlickrHandler().then(function(response) {
 
 		var handler = response.flickrHandler,
@@ -27,15 +31,18 @@ var getMemories = function(req, res, next) {
 			authenticated: true,
 			lat: req.body.lat ? req.body.lat : 44.461319, // defaults to Sayles
 			lon: req.body.lng ? req.body.lng : -93.156094, // defaults to Sayles
-			radius: req.body.rad ? req.body.rad : 0.1
+			radius: req.body.rad ? req.body.rad : 0.1,
+			privacy_filter : 1
 		};
 
 		// Search for images around the given location
 		handler.photos.search(imageRequest, function(err, response) {
-		
+
 			if (err) {
 				throw err;
 			} else if (response) {
+
+				console.log('> Search Successfull From Flickr Api');
 
 				var photos = response.photos.photo,
 				 	imagePromises = [],
@@ -48,12 +55,10 @@ var getMemories = function(req, res, next) {
 						api_key: imageRequest.api_key,
 						photo_id: photos[i].id
 					}));
-					imagePromises.push(downloadImage(handler, photos[i].id));
+					imagePromises.push(getImageData(handler, photos[i].id));
 					ids.push(photos[i].id);
 				}
-			
 				Q.all(imagePromises.concat(MetadataPromises)).then( function(response) {
-
 					for (var i = 0; i < ids.length; i++) {
 						imageProps = _.where(response, {id : ids[i] });
 						var imageObj = {}
@@ -62,7 +67,8 @@ var getMemories = function(req, res, next) {
 						}
 						output.push(imageObj);
 					}
-
+					console.log('> Memories Fetched Successfully!');
+					console.log('--------------------------');
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ content: output }));
 				
@@ -100,6 +106,9 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 		if (err) {
 			throw err
 		} else {
+
+			console.log('> Image Isnfo Recieved from Server');
+
 			def.resolve({
 				id : response.photo.id,
 				caption : response.photo.title._content,
@@ -108,7 +117,8 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 				timestamps: {
 					posted: response.photo.dates.posted,
 					taken: response.photo.dates.taken
-				}
+				},
+
 			});
 		}
 	});
@@ -132,37 +142,82 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
  *	  encoded string containing the image
  *
  **/
-var downloadImage = function (flickrApiHandler, imageId) {
+var getImageData = function (flickrApiHandler, imageId) {
 
 	var def = Q.defer();
+	var imageId = imageId;
 
 	flickrApiHandler.photos.getSizes({ photo_id: imageId }, function (err, response) {
+		
 		if (err) {
 			throw err
 		} else {
+
+			console.log('> Received Image Download Urls from Flickr');
+
 			imageUrl = response.sizes.size[response.sizes.size.length - 1].source;
-			request(imageUrl, function (error, response, body) {
-				if (!error && response.statusCode == 200) {
-					image = new Buffer(body.toString(), "binary").toString("base64")
-					def.resolve({
-						id: imageId,
-						image: image
-					});
-				} else {
-					if (err) {
-						throw err
-					} else {
-						// @todo: return 500 here 
-						console.log('Image not found');
-					}
-				}
-			});		
+
+			downloadImage(imageUrl).then( function (image) {
+				def.resolve({
+					id : imageId,
+					image : image
+				});
+			});
 		}
 	});
 
 	return def.promise;
 
 }
+
+/**
+ * Downloads image from given url using http and converts it to a 64 bit string
+ *
+ * Params:
+ *	- url : id for the image being requested
+ * 
+ * Returns:
+ *	- promise that resolves to 64 bit encoded string representation of the image
+ *
+ **/
+var downloadImage = function (imageUrl) {
+
+	var def = Q.defer(),
+	// create url
+    oURL = URL.parse(imageUrl),
+    // making the http request
+    request = HTTP.get({
+        host: oURL.hostname,
+        path: oURL.pathname
+    });
+    // end request
+	request.end();
+	// request callback
+	request.on('response', function (response)
+	{
+	    var type = response.headers["content-type"],
+	        prefix = "data:" + type + ";base64,",
+	        body = "";
+
+	    response.setEncoding('binary');
+	    
+	    response.on('end', function () {
+	        var base64 = new Buffer(body, 'binary').toString('base64'),
+	            data = base64;
+			console.log('> Downloaded Image from URL and Converted to 64 Bit String');
+	        def.resolve(data);
+	    });
+
+	    response.on('data', function (chunk) {
+	        if (response.statusCode == 200) body += chunk;
+	    });
+
+	});
+
+	return def.promise;
+
+}
+
 
 module.exports = {
 	getMemories: getMemories
