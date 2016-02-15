@@ -32,7 +32,7 @@ var getMemories = function(req, res, next) {
 			lat: req.body.lat ? req.body.lat : 44.461319, // defaults to Sayles
 			lon: req.body.lng ? req.body.lng : -93.156094, // defaults to Sayles
 			radius: req.body.rad ? req.body.rad : 0.1,
-			// privacy_filter : 1
+			privacy_filter : 1
 		};
 
 		// Search for images around the given location
@@ -107,7 +107,7 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 			throw err
 		} else {
 
-			console.log('> Image Info Recieved from Server');
+			console.log('> Image Isnfo Recieved from Server');
 
 			def.resolve({
 				id : response.photo.id,
@@ -205,7 +205,6 @@ var downloadImage = function (imageUrl) {
 	        var base64 = new Buffer(body, 'binary').toString('base64'),
 	            data = base64;
 			console.log('> Downloaded Image from URL and Converted to 64 Bit String');
-			console.log('MEOW');
 	        def.resolve(data);
 	    });
 
