@@ -4,7 +4,7 @@
  * has methods for writing to file systems, getting the flickr api handler etc
  *
  **/
-var Q = require('Q'),
+var Q = require('q'),
 	fs = require('fs'),
 	mime = require('mime'),
 	Flickr = require('flickrapi'),
