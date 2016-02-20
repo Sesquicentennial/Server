@@ -17,7 +17,7 @@ var getQuest = function (req, res, next) {
     var output = [];
 
 
-    var allQuestsQuery = "SELECT quests.quest_id, quests.name, quests.desc, quests.comp_msg, \
+    var allQuestsQuery = "SELECT quests.quest_id, quests.name, quests.desc, quests.comp_msg, quests.difficulty, quests.audience, \
     				  quests.creator, images.filename, images.format, images.category \
     				  FROM quests join questImage join images \
     				  WHERE quests.quest_id like quim_id \
@@ -73,6 +73,8 @@ var getQuest = function (req, res, next) {
 					compMsg: questData[i].comp_msg,
 					creator: questData[i].creator,
 					image: images[i].image,
+					difficulty: questData[i].difficulty,
+					audience: questData[i].audience,
 					waypoints: waypoints[questData[i].quest_id]
 				});	
 			}
