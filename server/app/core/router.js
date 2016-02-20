@@ -31,5 +31,5 @@ server.post("/memories_fetch",controllers.memories_get.getMemories);
 server.post("/memories_add",controllers.memories_add.addMemory);
 
 server.listen(3000, function() {
-    console.log("Server started @ 3000");
+    console.log("Server started at port 3000");
 });
