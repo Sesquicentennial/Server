@@ -30,6 +30,7 @@ var getNearbyGeofences = function(req, res, next) {
                 }
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ content: output }));
+                next();
             }
         }
     });

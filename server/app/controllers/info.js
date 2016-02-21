@@ -99,19 +99,23 @@ var getInfo = function(req, res, next) {
                     }
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ content: output }));
+                    next();
                 });
             } else {
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({content: {}}));
+                next();
             }           
         })
         .catch(function (err){
             res.writeHead(404, {});
             res.end(JSON.stringify(err));
+            next();
         });
     } else {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({content : {}}));
+        next();
     }
 }       
 
