@@ -36,7 +36,7 @@ var addMemory = function(req, res, next) {
 					photos : [{
 						title : request.title,
 						description : request.desc,
-						is_public : 0, // this makes it private so we can moderate the stream
+						is_public : 1, // this makes it private so we can moderate the stream
 						tags : [],  
 						photo : imageFilePath
 					}]

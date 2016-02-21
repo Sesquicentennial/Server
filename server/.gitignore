@@ -32,3 +32,6 @@ node_modules
 
 # configuration file
 config.js
+
+# Flikr Data
+data
