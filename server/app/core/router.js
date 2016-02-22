@@ -6,6 +6,7 @@ var restify = require('restify'),
 controllers = {};
 controllers_path = process.cwd() + '/app/controllers';
 
+// link the controllers to the application
 fs.readdirSync(controllers_path).forEach(function(file) {
     if (file.indexOf('.js') != -1) {
         controllers[file.split('.')[0]] = require(controllers_path + '/' + file)
@@ -15,7 +16,6 @@ fs.readdirSync(controllers_path).forEach(function(file) {
 var server = restify.createServer();
 
 exports.server = server;
-
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());

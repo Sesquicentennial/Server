@@ -1,9 +1,8 @@
 /**
  *
- * Flickr Service is a wrapper around the flickr api and the node flickr module
+ * Flickr Service is a wrapper around the flickr API and the node flickr module
  * has methods for writing to file systems, getting the flickr api handler etc
- *
- **/
+ */
 var Q = require('q'),
 	fs = require('fs'),
 	mime = require('mime'),
@@ -12,16 +11,13 @@ var Q = require('q'),
 	flickrHandler = undefined;
 
 /**
- *
  * Checks to see if Flicker's api handler has already been initialized
  * if not, uses credentials in config file to initialize it
  *
  * Returns:
  * 	- promise that resolves to Flickr's api handler
- *
- **/
+ */
 var getFlickrHandler = function() {
-
 	var def = Q.defer(),
 		flickrOptions = config.flickrOptions;
 
@@ -47,18 +43,15 @@ var getFlickrHandler = function() {
 	}
 
 	return def.promise;
-
 }
 
 /**
- *
- * Checks to see if Flicker's api handler has already been initialized
+ * Checks to see if Flicker's API handler has already been initialized
  * if not, uses credentials in config file to initialize it
  *
  * Returns:
  * 	- promise that resolves to Flickr's api handler
- *
- **/
+ */
 var deleteImage = function(args) {
 	var def = Q.defer();
 	var baseImage = config.flickrDir;
@@ -72,7 +65,6 @@ var deleteImage = function(args) {
 	});
 
 	return def.promise;
-
 }
 
 

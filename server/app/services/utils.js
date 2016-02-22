@@ -1,12 +1,10 @@
-// a convenience function to determine the distance betweeen two points
-// in the geographic coordinate system
+/**
+ * A boolean function to determine if a point is 
+ * within the radius of a lat/long coordinate.
+ */
 var distanceTo = function(radius, center, point) {
     dist = getHaversineDistance(center, point);
-    if (dist <= radius) {
-        return true;
-    } else {
-        return false;
-    }
+    return dist <= radius;
 };
 
 // convert from degrees to radians
