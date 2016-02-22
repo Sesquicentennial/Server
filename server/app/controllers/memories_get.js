@@ -155,7 +155,8 @@ var getImageData = function (flickrApiHandler, imageId) {
 
 			console.log('> Received Image Download Urls from Flickr');
 
-			imageUrl = response.sizes.size[response.sizes.size.length - 1].source;
+			index = Math.round(response.sizes.size.length/2) // pick medium size roughly
+			imageUrl = response.sizes.size[index].source;
 
 			downloadImage(imageUrl).then( function (image) {
 				def.resolve({
