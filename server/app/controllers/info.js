@@ -2,7 +2,10 @@ var utils = require('../services/utils'),
     imageHelper = require('../services/images'),
     database = require('../core/database'),
     Q = require('q');
-
+/**
+ * the /info endpoint, which returns historical information
+ * given a client request with a geofence name from the /geofences endpoint. 
+ */
 var getInfo = function(req, res, next) {
 
     var requestBody = req.body;
@@ -11,11 +14,8 @@ var getInfo = function(req, res, next) {
     var defs = {};
     var promises = [];
 
-
-
-    // create query to get geofence ids
-    
     if (geofences.length > 0) {
+        // create query to get geofence ids
         var query = 'SELECT geofence_id from geofences where name like '
        
         for (var i = 0; i < geofences.length; i++) {
@@ -49,6 +49,7 @@ var getInfo = function(req, res, next) {
                                 var output = [];
                                 var imagePromises = [];
                                 for (var i = 0; i < rows.length; i++) {
+                                    // build the JSON for each result
                                     if (rows[i].type === 'text') {
                                         output.push({
                                             "geofence_id": rows[i].geofence_id,
@@ -56,7 +57,7 @@ var getInfo = function(req, res, next) {
                                             "name": rows[i].name,
                                             "type": rows[i].type,
                                             "summary": rows[i].summary,
-                                            "desc": rows[i].data, // HACKY FIX to make Chet feel better @todo: remove
+                                            "desc": rows[i].data, 
                                             "data" : rows[i].data,
                                             "year": rows[i].year ? rows[i].year : undefined,
                                             "month": rows[i].month ? rows[i].month : undefined,
@@ -90,7 +91,7 @@ var getInfo = function(req, res, next) {
         });
 
         outerDef.promise
-        .then(function(){
+        .then(function() {
             if (promises.length > 0) {
                 Q.all(promises).then( function(response) {
                     var output = {};
@@ -119,6 +120,10 @@ var getInfo = function(req, res, next) {
     }
 }       
 
+/** 
+ * Given the information from a row for a piece of historical information, 
+ * get the image for it.
+ */
 var getImage = function (args) {
     var infoRowData = args;
     var def = Q.defer();

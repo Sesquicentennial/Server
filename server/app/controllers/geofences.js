@@ -1,6 +1,10 @@
 var utils = require('../services/utils'),
     database = require('../core/database');
-
+/**
+ * The /geofences endpoint, which given a client request,
+ * returns a set of geofences for the app to monitor with
+ * their names and radii.
+ */
 var getNearbyGeofences = function(req, res, next) {
     var requestBody = req.body;
     var radius = req.body.geofence.radius;

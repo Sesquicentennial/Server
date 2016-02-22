@@ -6,8 +6,7 @@ var _ = require('underscore'),
 	flickrHelper = require('../services/flickr');
 
 /**
- *
- * Called by the HTTPS request. Formulates a request using the HTTP body
+ * Called by the /memories_add endpoint. Formulates a request using the HTTP body
  * and uses Flicker's api handler to write the image to the file system
  * upload the image to Flickr, delete image from the file system, add
  * geotagging to the image and timestamp data
@@ -15,7 +14,7 @@ var _ = require('underscore'),
  * Returns:
  * 	- status of the request (success or failure)
  *
- **/	
+ */	
 var addMemory = function(req, res, next) {
 	
 	console.log('--------------------------');
@@ -93,7 +92,7 @@ var addMemory = function(req, res, next) {
  * Returns:
  * 	- promise that resolves to object containing metadata for the requested image
  *
- **/
+ */
 addTimestamps = function (flickrApiHandler, requestOptions) {
 	
 	var def = Q.defer();
@@ -122,9 +121,8 @@ addTimestamps = function (flickrApiHandler, requestOptions) {
  * Returns:
  * 	- promise that resolves to object containing metadata for the requested image
  *
- **/
+ */
 var addGeoData = function(flickrApiHandler, requestOptions) {
-
 	var def = Q.defer();
 
 	flickrApiHandler.photos.geo.setLocation(requestOptions, function (err, res) {
@@ -134,10 +132,9 @@ var addGeoData = function(flickrApiHandler, requestOptions) {
 			console.log('> Geotagging Completed Successfully');
  			def.resolve(res);
  		}
-	})
+	});
 
 	return def.promise;
-
 }
 
 /**
@@ -153,9 +150,8 @@ var addGeoData = function(flickrApiHandler, requestOptions) {
  * Returns:
  * 	- promise that resolves to an object containg the imageId
  *
- **/
+ */
 var uploadImage = function(flickrOptions, uploadOptions) {
-	
 	var def = Q.defer();
 
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
@@ -172,12 +168,11 @@ var uploadImage = function(flickrOptions, uploadOptions) {
 	});
 
 	return def.promise;
-
 }
 
 /**
  *
- * Writes image to file system using the FS module
+ * Writes image to the file system for safekeeping. 
  *
  * Params:
  *	- args : contains file name of image and the 64 bit string representation
@@ -185,9 +180,8 @@ var uploadImage = function(flickrOptions, uploadOptions) {
  * Returns:
  * 	- promise that resolves when image is successfully written to the file system
  *
- **/
+ */
 var writeImage = function(args) {
-
 	var def = Q.defer(),
 		filePath = args.fileName;
 
@@ -201,9 +195,7 @@ var writeImage = function(args) {
 	});
 
 	return def.promise;
-
 }
-
 
 /**
  *
@@ -215,9 +207,8 @@ var writeImage = function(args) {
  * Returns:
  * 	- promise that resolves when image is deleted
  *
- **/
+ */
 var deleteImage = function(filePath) {
-
 	var def = Q.defer();
 
 	fs.unlink(filePath, function(err) {
@@ -230,7 +221,6 @@ var deleteImage = function(filePath) {
 	});
 
 	return def.promise;
-
 }
 
 module.exports = {

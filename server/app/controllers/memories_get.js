@@ -6,15 +6,15 @@ var _ = require('underscore'),
 
 /**
  *
- * Called by the HTTPS request. Formulates a request using the HTTP body
- * and uses Flicker's api handler to get Image Ids for all nearby images.
+ * Called by the /memories_fetch endpoint. Formulates a request using the HTTP body
+ * and uses Flicker's API handler to get Image Ids for all nearby images.
  * Uses helper methods to get the metadata and the image content sends
  * them back to the client
  *
  * Returns:
  * 	- list of objects each containing an image and associated metadata
  *
- **/
+ */
 var getMemories = function(req, res, next) {
 
 	console.log('--------------------------');
@@ -37,11 +37,9 @@ var getMemories = function(req, res, next) {
 
 		// Search for images around the given location
 		handler.photos.search(imageRequest, function(err, response) {
-
 			if (err) {
 				throw err;
 			} else if (response) {
-
 				console.log('> Search Successfull From Flickr Api');
 
 				var photos = response.photos.photo,
@@ -58,6 +56,7 @@ var getMemories = function(req, res, next) {
 					imagePromises.push(getImageData(handler, photos[i].id));
 					ids.push(photos[i].id);
 				}
+                // resolve the image promises  
 				Q.all(imagePromises.concat(MetadataPromises)).then( function(response) {
 					for (var i = 0; i < ids.length; i++) {
 						imageProps = _.where(response, {id : ids[i] });
@@ -80,14 +79,12 @@ var getMemories = function(req, res, next) {
 	            res.end({});
 			}
 		});
-
 	});
-
 }
 
 /**
  *
- * Helper method that uses Flicker's api handler to get metadata
+ * Helper method that uses Flicker's API handler to get metadata
  * for the image
  *
  * Params:
@@ -97,16 +94,16 @@ var getMemories = function(req, res, next) {
  * Returns:
  * 	- promise that resolves to object containing metadata for the requested image
  *
- **/
+ */
 var getImageInfo = function (flickrApiHandler, imageParams) {
 	
 	var def = Q.defer();
 
+    // get the metadeta from the Flickr API 
 	flickrApiHandler.photos.getInfo(imageParams, function (err, response) {
 		if (err) {
 			throw err
 		} else {
-
 			console.log('> Image Isnfo Recieved from Server');
 
 			def.resolve({
@@ -124,12 +121,11 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
 	});
 
 	return def.promise;
-
 }
 
 /**
  *
- * Helper method that uses Flicker's api handler to get the url for the image
+ * Helper method that uses Flicker's API handler to get the url for the image
  * and uses the request api to download the image. Encodes image into a 64bit
  * binary string and wraps it up in a promise
  *
@@ -141,20 +137,17 @@ var getImageInfo = function (flickrApiHandler, imageParams) {
  * 	- promise that resolves to an object containg the imageId and the 64bit
  *	  encoded string containing the image
  *
- **/
+ */
 var getImageData = function (flickrApiHandler, imageId) {
-
 	var def = Q.defer();
 	var imageId = imageId;
 
+    // get the image data from the Flickr API
 	flickrApiHandler.photos.getSizes({ photo_id: imageId }, function (err, response) {
-		
 		if (err) {
 			throw err
 		} else {
-
 			console.log('> Received Image Download Urls from Flickr');
-
 			index = Math.round(response.sizes.size.length/2) // pick medium size roughly
 			imageUrl = response.sizes.size[index].source;
 
@@ -168,7 +161,6 @@ var getImageData = function (flickrApiHandler, imageId) {
 	});
 
 	return def.promise;
-
 }
 
 /**
@@ -180,9 +172,8 @@ var getImageData = function (flickrApiHandler, imageId) {
  * Returns:
  *	- promise that resolves to 64 bit encoded string representation of the image
  *
- **/
+ */
 var downloadImage = function (imageUrl) {
-
 	var def = Q.defer(),
 	// create url
     oURL = URL.parse(imageUrl),
@@ -216,7 +207,6 @@ var downloadImage = function (imageUrl) {
 	});
 
 	return def.promise;
-
 }
 
 
