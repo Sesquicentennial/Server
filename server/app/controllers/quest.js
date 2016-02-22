@@ -173,7 +173,6 @@ var getWaypointsHelper = function (questId) {
 			}
 
 			Q.all(promises).then(function (response) {
-				console.log(response);
 				for (var i = 0; i < quest.waypoints.length; i++) {
 					quest.waypoints[i].clue = response[i].clue;
 					quest.waypoints[i].hint = response[i].hint;
