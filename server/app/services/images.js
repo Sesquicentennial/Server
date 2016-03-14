@@ -18,7 +18,7 @@ var Q = require('q')
 
 var getImage = function(args) {
 
-	var imageBase = config.images_base_path;
+	var imageBase = config.imagesConfig.images_base_path;
 	var def = Q.defer();
 	var imageFormat = args.imageFormat
 	var imagePath = imageBase + '/' + args.imageCategory + '/' + args.imageName + '.' + args.imageFormat;

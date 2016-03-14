@@ -19,7 +19,7 @@ var Q = require('q'),
  */
 var getFlickrHandler = function() {
 	var def = Q.defer(),
-		flickrOptions = config.flickrOptions;
+		flickrOptions = config.imagesConfig.flickrOptions;
 
 	if (!flickrHandler) {
 		Flickr.authenticate(flickrOptions, function(err, flickr) {
@@ -66,7 +66,6 @@ var deleteImage = function(args) {
 
 	return def.promise;
 }
-
 
 module.exports = {
 	getFlickrHandler : getFlickrHandler
