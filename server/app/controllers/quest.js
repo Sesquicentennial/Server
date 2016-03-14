@@ -23,19 +23,21 @@ var getQuest = function (req, res, next) {
     				  FROM quests join questImage join images \
     				  WHERE quests.quest_id like quim_id \
     				  and images.image_id like imqu_id";
+    database.pool.getConnection(function(err,connection){
+	   	connection.query(allQuestsQuery, function (err, rows, fields) {
+	   		if (err) {
+	   			throw err
+	   		} else {
+	   			if (rows.length > 0) {
+	   				outerDef.resolve(rows);
+	   			} else {
+	   				outerDef.resolve([]);
+	   			}
+	   		}
+	   	});
+	   	connection.release();
+    });
 
-    // launch the query
-   	database.connection.query(allQuestsQuery, function (err, rows, fields) {
-   		if (err) {
-   			throw err
-   		} else {
-   			if (rows.length > 0) {
-   				outerDef.resolve(rows);
-   			} else {
-   				outerDef.resolve([]);
-   			}
-   		}
-   	});
 
     // once the database query is resolved...
    	outerDef.promise.then(function(rows){
@@ -152,38 +154,41 @@ var getWaypointsHelper = function (questId) {
 				 FROM questWaypoint join waypoints \
 				 WHERE questWaypoint.quwp_id like '" + questId + "' and waypoints.waypoint_id like questWaypoint.wpqu_id";
 
-    // Query the database
-	database.connection.query(query, function (err, rows, fields) {
-		if (err) {
-			throw err;
-		} else if (rows.length > 0) {
-			var promises = [];
+	database.pool.getConnection(function(err,connection) {
+	    // Query the database
+		connection.query(query, function (err, rows, fields) {
+			if (err) {
+				throw err;
+			} else if (rows.length > 0) {
+				var promises = [];
 
-			var quest = {
-				questId: questId,
-				waypoints: []
-			};
+				var quest = {
+					questId: questId,
+					waypoints: []
+				};
 
-			for (var i = 0; i < rows.length; i++) {
-				var waypoint = {
-					lat: rows[i].lat,
-					lng: rows[i].lng,
-					rad: rows[i].rad
+				for (var i = 0; i < rows.length; i++) {
+					var waypoint = {
+						lat: rows[i].lat,
+						lng: rows[i].lng,
+						rad: rows[i].rad
+					}
+
+					promises.push(getClues({"id":rows[i].waypoint_id}));
+					quest.waypoints.push(waypoint);
 				}
-
-				promises.push(getClues({"id":rows[i].waypoint_id}));
-				quest.waypoints.push(waypoint);
+	            // get the data for the waypoints and resolve the promise
+				Q.all(promises).then(function (response) {
+					for (var i = 0; i < quest.waypoints.length; i++) {
+						quest.waypoints[i].clue = response[i].clue;
+						quest.waypoints[i].hint = response[i].hint;
+						quest.waypoints[i].completion = response[i].completion;
+					}
+					def.resolve(quest);
+				});
 			}
-            // get the data for the waypoints and resolve the promise
-			Q.all(promises).then(function (response) {
-				for (var i = 0; i < quest.waypoints.length; i++) {
-					quest.waypoints[i].clue = response[i].clue;
-					quest.waypoints[i].hint = response[i].hint;
-					quest.waypoints[i].completion = response[i].completion;
-				}
-				def.resolve(quest);
-			});
-		}
+			connection.release();
+		});
 	});
 
 	return def.promise;
@@ -201,37 +206,41 @@ var getClues = function (waypoint) {
 				  FROM waypointClue join clues\
 				  WHERE  waypointClue.wpcl_id like '" + waypoint.id + "' and clues.clue_id like waypointClue.clwp_id";
 
-    // query the database
-	database.connection.query(query, function (err, rows, fields) {
-		if (err) {
-			throw err;
-		} else if (rows.length > 0) {
-			var output = {};
-			var promises = [];
+	database.pool.getConnection(function(err,connection) {
+	    // query the database
+		connection.query(query, function (err, rows, fields) {
+			if (err) {
+				throw err;
+			} else if (rows.length > 0) {
+				var output = {};
+				var promises = [];
 
-            // launch the promises for the clue images
-			for (var i = 0; i < rows.length; i++) {
-				output[rows[i].type] = {text:rows[i].text};
-				if (rows[i].has_img) {
-					promises.push(getClueImage(rows[i].clue_id));
-				}
-			}
-
-			if (promises.length > 0) {
-                // resolve the promises for the images
-				Q.all(promises).then(function (response) {
-					for (var i = 0; i < response.length; i++) {
-						output[response[i].type].image = response[i].image;
+	            // launch the promises for the clue images
+				for (var i = 0; i < rows.length; i++) {
+					output[rows[i].type] = {text:rows[i].text};
+					if (rows[i].has_img) {
+						promises.push(getClueImage(rows[i].clue_id));
 					}
+				}
+
+				if (promises.length > 0) {
+	                // resolve the promises for the images
+					Q.all(promises).then(function (response) {
+						for (var i = 0; i < response.length; i++) {
+							output[response[i].type].image = response[i].image;
+						}
+						def.resolve(output);
+					});
+				} else {
 					def.resolve(output);
-				});
+				}
 			} else {
-				def.resolve(output);
+				def.resolve({});
 			}
-		} else {
-			def.resolve({});
-		}
+			connection.release();
+		});
 	});
+
 	return def.promise;
 }
 
@@ -246,24 +255,27 @@ var getClueImage = function (id) {
 				 FROM clues join clueImage join images\
 				 where clues.clue_id like '" + id + "' and clues.clue_id like clueImage.clim_id and images.image_id like clueImage.imcl_id";
 
-    // query the database
-	database.connection.query(query, function (err, rows, fields) {
-		if (err) {
-			throw err
-		} else if (rows.length > 0) {
-			imageHelper.getImage({
-				imageCategory: rows[0].category,
-				imageName: rows[0].filename,
-				imageFormat: rows[0].format
-			}).then( function (resImage) {
-				def.resolve({
-					image: resImage,
-					type: rows[0].type
+	database.pool.getConnection(function(err,connection){
+	    // query the database
+		connection.query(query, function (err, rows, fields) {
+			if (err) {
+				throw err
+			} else if (rows.length > 0) {
+				imageHelper.getImage({
+					imageCategory: rows[0].category,
+					imageName: rows[0].filename,
+					imageFormat: rows[0].format
+				}).then( function (resImage) {
+					def.resolve({
+						image: resImage,
+						type: rows[0].type
+					});
 				});
-			});
-		} else {
-			def.resolve({});
-		}
+			} else {
+				def.resolve({});
+			}
+			connection.release();
+		});
 	});
 
 	return def.promise;
