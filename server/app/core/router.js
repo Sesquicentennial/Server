@@ -28,6 +28,7 @@ server.post("/events", controllers.events.getEvents);
 server.post("/quest",controllers.quest.getQuest);
 server.post("/memories_fetch",controllers.memories_get.getMemories);
 server.post("/memories_add",controllers.memories_add.addMemory);
+server.get("/new_history",  controllers.new_history.getHistoryContent);
 
 server.listen(3000, function() {
     console.log("Server started at port 3000");
